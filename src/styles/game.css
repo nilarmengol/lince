@@ -1,0 +1,120 @@
+.layout {
+  display: grid;
+  grid-template-columns: 75% auto;
+  width: 100%;
+}
+
+.button {
+  padding: 15px 25px;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: tomato;
+  border: none;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.disabled {
+  padding: 15px 25px;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #8888;
+  background-color: silver;
+  border: none;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.button:active {
+  background-color: silver;
+}
+
+.button:hover {
+  cursor: pointer;
+  border: silver 1px solid;
+}
+
+.block {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: 200px;
+  border-radius: 5px;
+  border: 1px solid silver;
+  font-size: 16px;
+  color: #fff;
+  background-color: rgba(17, 140, 255, 1);
+  justify-content: space-between;
+}
+.player p {
+  margin: 0;
+}
+
+.container {
+  border: 1px solid blue;
+  height: 100%;
+}
+.players {
+  margin-top: 20px;
+}
+
+.square {
+  height: 50px;
+  width: 50px;
+}
+
+.squareGreen {
+  background-color: green;
+}
+
+.items {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.square:hover {
+  background-color: silver;
+  cursor: pointer;
+}
+
+.icon {
+  height: 30px;
+  width: 30px;
+}
+
+.bigSquare {
+  height: 300px;
+  width: 300px;
+}
+
+.bigIcon {
+  height: 100px;
+  width: 100px;
+  padding: 50px;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.neutral {
+  border: silver 1px solid;
+}
+
+.scroll {
+  overflow-y: auto;
+}
+
+.correct {
+  border: green 3px solid;
+}
