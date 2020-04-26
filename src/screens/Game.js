@@ -89,7 +89,7 @@ function Players(props) {
 
   return (
     <div className="players">
-      {success && <p>Nil wo the round</p>}
+      {success && <p>Nil won the round</p>}
       {players.map((player, index) => (
         <div key={index} className="player">
           <p>{player.name}</p> <p className="score">Score: {player.score}</p>
