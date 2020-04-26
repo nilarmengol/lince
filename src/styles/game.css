@@ -17,6 +17,32 @@
   margin-top: 20px;
 }
 
+.refresh {
+  padding: 8px 10px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #32cd32;
+  border: none;
+  border-radius: 15px;
+  margin-top: 10px;
+}
+
+.refreshDisabled {
+  padding: 8px 10px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #8888;
+  background-color: silver;
+  border: none;
+  border-radius: 15px;
+  margin-top: 10px;
+}
+
 .disabled {
   padding: 15px 25px;
   font-size: 16px;

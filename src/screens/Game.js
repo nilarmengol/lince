@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "../styles/game.css";
-import { items } from "../assets/Assets";
+import { itemsIcons } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
+import Refresh from "../icons/icons8-refresh-30.png";
 
 function Game() {
+  const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
+
   const [players, setPlayers] = useState([
     {
       name: "Nil",
@@ -32,16 +35,19 @@ function Game() {
           players={players}
           success={success}
           setButtonDisabled={setButtonDisabled}
+          items={items}
         />
       </div>
       <div className=" block">
         <Item
+          setItems={setItems}
           randomItem={randomItem}
           setRandomItem={setRandomItem}
           buttonDisabled={buttonDisabled}
           setButtonDisabled={setButtonDisabled}
           setSuccess={setSuccess}
           success={success}
+          items={items}
         />
         <Players players={players} success={success} />
       </div>
@@ -56,13 +62,36 @@ function Item(props) {
     buttonDisabled,
     setButtonDisabled,
     setSuccess,
-    success
+    success,
+    setItems,
+    items
   } = props;
 
   const random = () => {
     setSuccess(false);
     setButtonDisabled(true);
-    setRandomItem(items[Math.floor(Math.random() * items.length)]);
+    setRandomItem(itemsIcons[Math.floor(Math.random() * itemsIcons.length)]);
+  };
+
+  const relocate = () => {
+    let copyItems = [...items];
+    let array = copyItems;
+    console.log("1", array);
+    let currentIndex = array.length;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      let randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      let temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+
+    setItems(array);
+    console.log("2", array);
   };
 
   return (
@@ -72,14 +101,21 @@ function Item(props) {
         src={randomItem ? randomItem : StartIcon}
         alt={randomItem}
       />
-
-      <button
-        className={buttonDisabled ? "disabled block" : "button block"}
-        onClick={random}
-        disabled={buttonDisabled}
-      >
-        New Item
-      </button>
+      <div>
+        <button
+          className={buttonDisabled ? "disabled block" : "button block"}
+          onClick={random}
+          disabled={buttonDisabled}
+        >
+          New Items
+        </button>
+        <button
+          onClick={relocate}
+          className={buttonDisabled ? "refreshDisabled block" : "refresh block"}
+        >
+          Refresh
+        </button>
+      </div>
     </div>
   );
 }
@@ -106,7 +142,8 @@ function Boardgame(props) {
     setButtonDisabled,
     randomItem,
     setSuccess,
-    success
+    success,
+    items
   } = props;
 
   const score = item => {

@@ -305,7 +305,7 @@ import Windsock from "../icons/windsock.png";
 import Wolf from "../icons/wolf.png";
 import Youtube from "../icons/youtube.png";
 
-export const items = [
+export const itemsIcons = [
   Pineapple,
   Watermelon,
   Aquarium,
