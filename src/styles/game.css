@@ -30,6 +30,15 @@
   margin-top: 10px;
 }
 
+.selections {
+  height: fit-content;
+  justify-content: space-around;
+  align-items: flex-start;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0rem;
+}
+
 .refreshDisabled {
   padding: 8px 10px;
   font-size: 14px;
@@ -87,10 +96,6 @@
   margin: 0;
 }
 
-.container {
-  border: 1px solid blue;
-  height: 100%;
-}
 .players {
   margin-top: 20px;
 }

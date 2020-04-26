@@ -27,7 +27,7 @@ function Game() {
 
   return (
     <div className="layout">
-      <div className=" ">
+      <div>
         <Boardgame
           setSuccess={setSuccess}
           randomItem={randomItem}
@@ -38,7 +38,7 @@ function Game() {
           items={items}
         />
       </div>
-      <div className=" block">
+      <div className="selections block">
         <Item
           setItems={setItems}
           randomItem={randomItem}
