@@ -3,6 +3,8 @@ import "../styles/game.css";
 import { itemsIcons } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
 import Refresh from "../icons/icons8-refresh-30.png";
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://127.0.0.1:4001";
 
 function Game() {
   const [items, setItems] = useState(itemsIcons);
@@ -25,8 +27,30 @@ function Game() {
 
   useEffect(() => {}, [success]);
 
+  const [response, setResponse] = useState("");
+
+
+  useEffect(() => {
+    const socket = socketIOClient(ENDPOINT);
+    socket.on("FromAPI", data => {
+      setResponse(data);
+    });
+  }, []);
+
+  const newGame = () => {
+    console.log('new game');
+    const socket = socketIOClient(ENDPOINT);
+    socket.emit('createGame', {name: 'sandeep'});
+  };
+
   return (
+    <div>
+      <p>
+      It's <time dateTime={response}>{response}</time>
+      Game id : 
+    </p>
     <div className="layout">
+      
       <div>
         <Boardgame
           setSuccess={setSuccess}
@@ -50,7 +74,20 @@ function Game() {
           items={items}
         />
         <Players players={players} success={success} />
+
+        <div class="container">
+        <h4>Create a new Game</h4>
+    <input type="text" name="name" id="nameNew" placeholder="Enter your name" required />
+    <button id="new" onClick={newGame}>New Game</button>
+    <br></br>
+    <h4>Join game</h4>
+    <input type="text" name="name" id="nameJoin" placeholder="Enter your name" required/>
+    <button id="join">Join Game</button>
+</div>
       </div>
+      
+    </div>
+    
     </div>
   );
 }
@@ -72,6 +109,8 @@ function Item(props) {
     setButtonDisabled(true);
     setRandomItem(itemsIcons[Math.floor(Math.random() * itemsIcons.length)]);
   };
+
+  
 
   const relocate = () => {
     let copyItems = [...items];
