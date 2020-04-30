@@ -10,6 +10,7 @@ const ENDPOINT = window.location.hostname;
 const socket = socketIOClient(ENDPOINT);
 
 function Game() {
+
   const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
@@ -17,21 +18,6 @@ function Game() {
   const [lobby, setLobby] = useState('');
   const [playerJoined, setPlayerJoined] = useState('');
   const [winner, setWinner] = useState('');
-
-  //const [gameId, setGameId] = useState('');
-
-  
-  // {
-  //   name: "Nil",
-  //   id: "181237098142",
-  //   score: 0
-  // },
-  // {
-  //   name: "Merce",
-  //   id: "fdgg3452",
-  //   score: 0
-  // }
-
   const [players, setPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState('');
@@ -54,27 +40,23 @@ function Game() {
       setUrlPath(window.location.href);
 
     socket.on('newGame', function(data){
-      var message = 'Hello, ' + data.name + 
-        '. Please ask your friend to enter Game ID: ' +
-        data.room + '. Waiting for player 2...';
-      console.log(message);
-      let url = window.location.href;    
-      if (url.indexOf('?') > -1){
-        url += '&lobby='+data.room
-      }else{
-        url += '?lobby='+data.room
-      }
-      setUrlPath(url);
-      setLobby(data.room);
-      setPlayerJoined(true);
+        let url = window.location.href;    
+        if (url.indexOf('?') > -1){
+          url += '&lobby='+data.room
+        }else{
+          url += '?lobby='+data.room
+        }
+        setUrlPath(url);
+        setLobby(data.room);
+        setPlayerJoined(true);
     });
   
     socket.on('addPlayer', function(data) {
-      let player = {};
-      player.name = data.name;
-      player.id = data.id;
-      player.score = 0;
-      setPlayers([...players, player]); 
+        let player = {};
+        player.name = data.name;
+        player.id = data.id;
+        player.score = 0;
+        setPlayers([...players, player]); 
     });
 
     socket.on('removePlayer', function(data) {
@@ -87,17 +69,14 @@ function Game() {
  
 
   const newGame = () => {
-    console.log('new game');
     socket.emit('createGame', {name: userName});
   };
 
   const joinGame = () => {
-    console.log('join game');
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const page_type = urlParams.get('lobby')
-    console.log(page_type);
-    socket.emit('joinGame', { room: page_type, name: userName });
+    const lobbyParam = urlParams.get('lobby');
+    socket.emit('joinGame', { room: lobbyParam, name: userName });
     setPlayerJoined(true);
   };
 
@@ -195,7 +174,6 @@ function Item(props) {
     socket.on('onRefresh', function(data) {
       let copyItems = [...items];
       let array = copyItems;
-      //console.log("1", array);
       let currentIndex = array.length;
       // While there remain elements to shuffle...
       while (0 !== currentIndex) {
@@ -210,13 +188,10 @@ function Item(props) {
       }
   
       setItems(array);
-      console.log("2");
-      //console.log("2", array);
     });
 
 
     socket.on('onNewItem', function(data) {
-      console.log("on new item")
       setSuccess(false);
       setButtonDisabled(true);
       setRandomItem(itemsIcons[data.itemId]);
@@ -229,7 +204,6 @@ function Item(props) {
     setButtonDisabled(true);
     const itemId = Math.floor(Math.random() * itemsIcons.length);
     setRandomItem(itemsIcons[itemId]);
-    console.log('lobby '+lobby);
     socket.emit('newItem', { room: lobby, itemId: itemId });
   };
 
@@ -269,12 +243,12 @@ function Players(props) {
   const { players, success, lobby, winner, setPlayers } = props;
 
   useEffect(() => {
-    console.log('getPlayers');
-    socket.emit('getPlayers', { room : lobby});
 
+    socket.emit('getPlayers', { room : lobby});
     socket.on('onGetPlayers', function(data) {
       setPlayers(data.players);
     });
+
   }, [lobby, setPlayers]);
 
   
@@ -307,17 +281,16 @@ function Boardgame(props) {
 
   useEffect(() => {
     socket.on('onUpdateBoard', function(data) {
-     // console.log()
-      let playersCopy = [...players];
-      playersCopy.forEach(function(item, i){
-        if(item.id === data.winner.id && !winner) {
-          playersCopy[i].score = data.winner.score
-          setWinner(playersCopy[i]);
-          setPlayers(playersCopy);
-          setButtonDisabled(false);
-          setSuccess(true);
-        }
-      });
+        let playersCopy = [...players];
+        playersCopy.forEach(function(item, i){
+          if(item.id === data.winner.id && !winner) {
+            playersCopy[i].score = data.winner.score
+            setWinner(playersCopy[i]);
+            setPlayers(playersCopy);
+            setButtonDisabled(false);
+            setSuccess(true);
+          }
+        });
     });
   }, [players, setButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 

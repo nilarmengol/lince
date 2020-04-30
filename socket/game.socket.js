@@ -1,11 +1,14 @@
 var ioEvents = function (io) {
 
-    let interval;
+    //maintain room data
     let gameData = {};
 
     io.on("connection", (socket) => {
         let currentRoomId;
         
+        /**
+         * Disconnect from the room
+         */
         socket.on("disconnect", () => {
             
             io.of('/').in(currentRoomId).emit('removePlayer', {
@@ -14,22 +17,19 @@ var ioEvents = function (io) {
 
             const sockets = io.nsps['/'].adapter.rooms[currentRoomId];
             if(!sockets) {
-                delete gameData[currentRoomId];
+                delete gameData[currentRoomId]; //clear room data when all players are gone
             } 
 
         });
 
         /**
-         * Create a new game room and notify the creator of game. 
+         * Create a new game room. 
          */
         socket.on('createGame', function (data) {
-            console.log(data.name.split(' ')[0]);
             
             const roomId = data.name.split(' ')[0] + '-' + socket.id; //creating private lobby
             socket.join(roomId);
             currentRoomId = roomId;
-
-           
 
             socket.emit('newGame', {
                 name: data.name,
@@ -53,10 +53,9 @@ var ioEvents = function (io) {
         });
 
         /**
-         * Connect the Player 2 to the room he requested. Show error if room full.
+         * Connect the Player to the room he requested. Show error if room full.
          */
         socket.on('joinGame', function (data) {
-            //console.log('Username: ' + data.room);
             var room = io.nsps['/'].adapter.rooms[data.room];
             
             if (room && room.length > 0) {
@@ -95,26 +94,8 @@ var ioEvents = function (io) {
             io.of('/').in(data.room).emit('onUpdateBoard', { room: data.lobby, winner: data.winner });
         });
 
-        /**
-         * Handle the turn played by either player and notify the other. 
-         */
-        socket.on('playTurn', function (data) {
-            socket.broadcast.to(data.room).emit('turnPlayed', {
-                tile: data.tile,
-                room: data.room
-            });
-        });
-
-        /**
-         * Notify the players about the victor.
-         */
-        socket.on('gameEnded', function (data) {
-            socket.broadcast.to(data.room).emit('gameEnd', data);
-        });
-
         socket.on('getPlayers', function (data) {
             var room = io.nsps['/'].adapter.rooms[data.room];
-            
             if (room && room.length > 0) {
                 socket.emit('onGetPlayers', { players: gameData[data.room].players});              
             } else {
@@ -124,12 +105,6 @@ var ioEvents = function (io) {
             }
         });
     });
-
-    // const getApiAndEmit = socket => {
-    //     const response = new Date();
-    //     // Emitting a new message. Will be consumed by the client
-    //     socket.emit("FromAPI", response);
-    // };
 
 }
 
