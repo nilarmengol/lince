@@ -2,53 +2,114 @@ import React, { useState, useEffect } from "react";
 import "../styles/game.css";
 import { itemsIcons } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
-import Refresh from "../icons/icons8-refresh-30.png";
 import socketIOClient from "socket.io-client";
-const ENDPOINT = "http://127.0.0.1:4001";
+//Deploy
+const ENDPOINT = window.location.hostname;
+//Local
+//const ENDPOINT = "http://127.0.0.1:4001";
+const socket = socketIOClient(ENDPOINT);
 
 function Game() {
   const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
+  const [userName, setUsername] = useState('');
+  const [lobby, setLobby] = useState('');
+  const [playerJoined, setPlayerJoined] = useState('');
+  const [winner, setWinner] = useState('');
 
-  const [players, setPlayers] = useState([
-    {
-      name: "Nil",
-      id: "181237098142",
-      score: 0
-    },
-    {
-      name: "Merce",
-      id: "fdgg3452",
-      score: 0
-    }
-  ]);
+  //const [gameId, setGameId] = useState('');
+
+  
+  // {
+  //   name: "Nil",
+  //   id: "181237098142",
+  //   score: 0
+  // },
+  // {
+  //   name: "Merce",
+  //   id: "fdgg3452",
+  //   score: 0
+  // }
+
+  const [players, setPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState("");
+  const [copySuccess, setCopySuccess] = useState('');
 
   useEffect(() => {}, [success]);
 
-  const [response, setResponse] = useState("");
-
+  const [urlPath, setUrlPath] = useState("");
+ 
 
   useEffect(() => {
-    const socket = socketIOClient(ENDPOINT);
-    socket.on("FromAPI", data => {
-      setResponse(data);
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const lobbyValue = urlParams.get('lobby');
+    if(lobbyValue)
+    setLobby(lobbyValue);
+    
+    let url = window.location.href;    
+      if (url.indexOf('?') > -1)
+      setUrlPath(window.location.href);
+
+    socket.on('newGame', function(data){
+      var message = 'Hello, ' + data.name + 
+        '. Please ask your friend to enter Game ID: ' +
+        data.room + '. Waiting for player 2...';
+      console.log(message);
+      let url = window.location.href;    
+      if (url.indexOf('?') > -1){
+        url += '&lobby='+data.room
+      }else{
+        url += '?lobby='+data.room
+      }
+      setUrlPath(url);
+      setLobby(data.room);
+      setPlayerJoined(true);
     });
-  }, []);
+  
+    socket.on('addPlayer', function(data) {
+      let player = {};
+      player.name = data.name;
+      player.id = data.id;
+      player.score = 0;
+      setPlayers([...players, player]); 
+    });
+
+    socket.on('removePlayer', function(data) {
+      let filteredArray = players.filter(item => item.id !== data.id)
+      setPlayers(filteredArray);
+    });
+    
+    
+  }, [ players ]);
+ 
 
   const newGame = () => {
     console.log('new game');
-    const socket = socketIOClient(ENDPOINT);
-    socket.emit('createGame', {name: 'sandeep'});
+    socket.emit('createGame', {name: userName});
   };
+
+  const joinGame = () => {
+    console.log('join game');
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const page_type = urlParams.get('lobby')
+    console.log(page_type);
+    socket.emit('joinGame', { room: page_type, name: userName });
+    setPlayerJoined(true);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(urlPath)
+    setCopySuccess('Copied!');
+  };
+
 
   return (
     <div>
-      <p>
-      It's <time dateTime={response}>{response}</time>
-      Game id : 
-    </p>
+      
     <div className="layout">
       
       <div>
@@ -60,6 +121,10 @@ function Game() {
           success={success}
           setButtonDisabled={setButtonDisabled}
           items={items}
+          userName={userName}
+          winner={winner}
+          setWinner={setWinner}
+          lobby={lobby}
         />
       </div>
       <div className="selections block">
@@ -72,18 +137,39 @@ function Game() {
           setSuccess={setSuccess}
           success={success}
           items={items}
+          lobby={lobby}
+          setLobby={setLobby}
         />
-        <Players players={players} success={success} />
-
-        <div class="container">
-        <h4>Create a new Game</h4>
-    <input type="text" name="name" id="nameNew" placeholder="Enter your name" required />
-    <button id="new" onClick={newGame}>New Game</button>
-    <br></br>
-    <h4>Join game</h4>
-    <input type="text" name="name" id="nameJoin" placeholder="Enter your name" required/>
-    <button id="join">Join Game</button>
-</div>
+        <Players players={players} success={success} lobby={lobby} winner={winner} setPlayers={setPlayers}/>
+        <br/>
+        { urlPath ? (
+          <span>
+            <input type="text" value={urlPath} readOnly/>
+            <button className="refresh block" onClick={copyToClipboard}>Invite</button> 
+            {copySuccess}
+          </span>) : (<span></span>)
+        }
+        
+        {
+          playerJoined ? (<div></div>) : (
+            <div className="container">
+              { lobby ? (
+                <span>
+                  <h4>Join game</h4>
+                  <input type="text" name="name" id="nameJoin" placeholder="Enter your name" required onChange={event => setUsername(event.target.value)}/>
+                  <button id="join" onClick={joinGame} className="button block">Join Game</button>
+                </span>
+                ) : (
+                    <span>
+                        <h4>Create a new Game</h4>
+                        <input type="text" name="name" id="nameNew" placeholder="Enter your name" required onChange={event => setUsername(event.target.value)} />
+                        <button onClick={newGame} className="button block">New Game</button>
+                    </span>
+                )}
+              </div>
+          )
+        }
+        
       </div>
       
     </div>
@@ -101,36 +187,55 @@ function Item(props) {
     setSuccess,
     success,
     setItems,
-    items
+    items,
+    lobby
   } = props;
+
+  useEffect(() => {
+    socket.on('onRefresh', function(data) {
+      let copyItems = [...items];
+      let array = copyItems;
+      //console.log("1", array);
+      let currentIndex = array.length;
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+  
+        // And swap it with the current element.
+        let temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+  
+      setItems(array);
+      console.log("2");
+      //console.log("2", array);
+    });
+
+
+    socket.on('onNewItem', function(data) {
+      console.log("on new item")
+      setSuccess(false);
+      setButtonDisabled(true);
+      setRandomItem(itemsIcons[data.itemId]);
+    });
+
+  }, [items, setItems, setRandomItem, setSuccess, setButtonDisabled]);
 
   const random = () => {
     setSuccess(false);
     setButtonDisabled(true);
-    setRandomItem(itemsIcons[Math.floor(Math.random() * itemsIcons.length)]);
+    const itemId = Math.floor(Math.random() * itemsIcons.length);
+    setRandomItem(itemsIcons[itemId]);
+    console.log('lobby '+lobby);
+    socket.emit('newItem', { room: lobby, itemId: itemId });
   };
 
   
-
   const relocate = () => {
-    let copyItems = [...items];
-    let array = copyItems;
-    console.log("1", array);
-    let currentIndex = array.length;
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-      // Pick a remaining element...
-      let randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-
-      // And swap it with the current element.
-      let temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-
-    setItems(array);
-    console.log("2", array);
+    socket.emit('refresh', { room: lobby });
   };
 
   return (
@@ -151,6 +256,7 @@ function Item(props) {
         <button
           onClick={relocate}
           className={buttonDisabled ? "refreshDisabled block" : "refresh block"}
+          disabled={buttonDisabled}
         >
           Refresh
         </button>
@@ -160,11 +266,21 @@ function Item(props) {
 }
 
 function Players(props) {
-  const { players, success } = props;
+  const { players, success, lobby, winner, setPlayers } = props;
 
+  useEffect(() => {
+    console.log('getPlayers');
+    socket.emit('getPlayers', { room : lobby});
+
+    socket.on('onGetPlayers', function(data) {
+      setPlayers(data.players);
+    });
+  }, [lobby, setPlayers]);
+
+  
   return (
     <div className="players">
-      {success && <p>Nil won the round</p>}
+      {success && <p>{winner.name} won the round</p>}
       {players.map((player, index) => (
         <div key={index} className="player">
           <p>{player.name}</p> <p className="score">Score: {player.score}</p>
@@ -182,16 +298,39 @@ function Boardgame(props) {
     randomItem,
     setSuccess,
     success,
-    items
+    items,
+    userName,
+    lobby,
+    winner,
+    setWinner
   } = props;
+
+  useEffect(() => {
+    socket.on('onUpdateBoard', function(data) {
+     // console.log()
+      let playersCopy = [...players];
+      playersCopy.forEach(function(item, i){
+        if(item.id === data.winner.id && !winner) {
+          playersCopy[i].score = data.winner.score
+          setWinner(playersCopy[i]);
+          setPlayers(playersCopy);
+          setButtonDisabled(false);
+          setSuccess(true);
+        }
+      });
+    });
+  }, [players, setButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
+
 
   const score = item => {
     if (item === randomItem) {
       let playersCopy = [...players];
-      playersCopy[0].score = playersCopy[0].score + 1;
-      setPlayers(playersCopy);
-      setButtonDisabled(false);
-      setSuccess(true);
+      playersCopy.forEach(function(item, i){
+        if(item.name === userName) {
+          socket.emit('updateBoard', { room: lobby, winner: playersCopy[i]});
+        }
+      });
+      
     } else {
       console.log("wrong");
     }

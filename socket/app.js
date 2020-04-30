@@ -1,15 +1,22 @@
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
+const path = require('path');
 
 const port = process.env.PORT || 4001;
-const index = require("./routes/index");
 
 const app = express();
-app.use(index);
 
 const server = http.createServer(app);
 
 const io = require('./game.socket').init(server);
+
+console.log(path.join(__dirname, '..', 'client', 'build'));
+// serve static files
+app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+
+//  handle all requests
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
+});
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
