@@ -283,7 +283,7 @@ function Boardgame(props) {
     socket.on('onUpdateBoard', function(data) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i){
-          if(item.id === data.winner.id) {
+          if(item.id === data.winner.id && !winner) {
             playersCopy[i].score = data.winner.score
             setWinner(playersCopy[i]);
             setPlayers(playersCopy);
@@ -296,7 +296,7 @@ function Boardgame(props) {
 
 
   const score = item => {
-    if (item === randomItem && !winner) {
+    if (item === randomItem) {
       let playersCopy = [...players];
       playersCopy.forEach(function(item, i){
         if(item.name === userName) {
