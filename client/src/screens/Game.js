@@ -20,6 +20,7 @@ function Game() {
   const [winner, setWinner] = useState('');
   const [players, setPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState("");
+  const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState('');
 
   useEffect(() => {}, [success]);
@@ -99,6 +100,7 @@ function Game() {
           players={players}
           success={success}
           setButtonDisabled={setButtonDisabled}
+          setRefreshButtonDisabled={setRefreshButtonDisabled}
           items={items}
           userName={userName}
           winner={winner}
@@ -113,11 +115,15 @@ function Game() {
           setRandomItem={setRandomItem}
           buttonDisabled={buttonDisabled}
           setButtonDisabled={setButtonDisabled}
+          refreshButtonDisabled={refreshButtonDisabled}
+          setRefreshButtonDisabled={setRefreshButtonDisabled}
           setSuccess={setSuccess}
           success={success}
           items={items}
           lobby={lobby}
           setLobby={setLobby}
+          winner={winner}
+          setWinner={setWinner}
         />
         <Players players={players} success={success} lobby={lobby} winner={winner} setPlayers={setPlayers}/>
         <br/>
@@ -163,11 +169,14 @@ function Item(props) {
     setRandomItem,
     buttonDisabled,
     setButtonDisabled,
+    refreshButtonDisabled,
+    setRefreshButtonDisabled,
     setSuccess,
     success,
     setItems,
     items,
-    lobby
+    lobby,
+    setWinner
   } = props;
 
   useEffect(() => {
@@ -188,20 +197,24 @@ function Item(props) {
       }
   
       setItems(array);
+      setRefreshButtonDisabled(true);
     });
 
 
     socket.on('onNewItem', function(data) {
+      setWinner('');
       setSuccess(false);
       setButtonDisabled(true);
+      setRefreshButtonDisabled(true);
       setRandomItem(itemsIcons[data.itemId]);
     });
 
-  }, [items, setItems, setRandomItem, setSuccess, setButtonDisabled]);
+  }, [items, setItems, setRandomItem, setSuccess, setButtonDisabled, setRefreshButtonDisabled, setWinner]);
 
   const random = () => {
     setSuccess(false);
     setButtonDisabled(true);
+    setRefreshButtonDisabled(true);
     const itemId = Math.floor(Math.random() * itemsIcons.length);
     setRandomItem(itemsIcons[itemId]);
     socket.emit('newItem', { room: lobby, itemId: itemId });
@@ -229,8 +242,8 @@ function Item(props) {
         </button>
         <button
           onClick={relocate}
-          className={buttonDisabled ? "refreshDisabled block" : "refresh block"}
-          disabled={buttonDisabled}
+          className={refreshButtonDisabled ? "refreshDisabled block" : "refresh block"}
+          disabled={refreshButtonDisabled}
         >
           Refresh
         </button>
@@ -269,6 +282,7 @@ function Boardgame(props) {
     setPlayers,
     players,
     setButtonDisabled,
+    setRefreshButtonDisabled,
     randomItem,
     setSuccess,
     success,
@@ -288,21 +302,24 @@ function Boardgame(props) {
             setWinner(playersCopy[i]);
             setPlayers(playersCopy);
             setButtonDisabled(false);
+            setRefreshButtonDisabled(false);
             setSuccess(true);
           }
         });
     });
-  }, [players, setButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
+  }, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
 
   const score = item => {
     if (item === randomItem) {
-      let playersCopy = [...players];
-      playersCopy.forEach(function(item, i){
-        if(item.name === userName) {
-          socket.emit('updateBoard', { room: lobby, winner: playersCopy[i]});
-        }
-      });
+      if(!winner) {
+        let playersCopy = [...players];
+        playersCopy.forEach(function(item, i){
+          if(item.name === userName) {
+            socket.emit('updateBoard', { room: lobby, winner: playersCopy[i]});
+          }
+        });
+      }
     } else {
       console.log("wrong");
     }
