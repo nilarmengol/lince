@@ -305,6 +305,10 @@ import Windsock from "../icons/windsock.png";
 import Wolf from "../icons/wolf.png";
 import Youtube from "../icons/youtube.png";
 
+import Yoda from "../icons/yoda.png";
+import Zatanna from "../icons/zatanna.png";
+import Zoidberg from "../icons/zoidberg.png";
+
 export const itemsIcons = [
   Pineapple,
   Watermelon,
@@ -612,5 +616,8 @@ export const itemsIcons = [
   Windows,
   Windsock,
   Wolf,
-  Youtube
+  Youtube,
+  Zoidberg,
+  Zatanna,
+  Yoda
 ];
