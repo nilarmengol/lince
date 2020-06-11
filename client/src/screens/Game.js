@@ -2,14 +2,17 @@ import React, { useState, useEffect } from "react";
 import "../styles/game.css";
 import { itemsIcons } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
-import socketIOClient from "socket.io-client";
+import io from "socket.io-client";
 //Deploy
-const ENDPOINT = window.location.hostname;
+//const ENDPOINT = window.location.hostname;
 //Local
-//const ENDPOINT = "http://127.0.0.1:4001";
-const socket = socketIOClient(ENDPOINT);
+const ENDPOINT = "http://127.0.0.1:4001/game";
+let socket;
 
 function Game() {
+  //const ENDPOINT = "http://127.0.0.1:4001/home";
+  socket = io(ENDPOINT);
+  
   const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
