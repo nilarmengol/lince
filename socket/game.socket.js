@@ -149,7 +149,6 @@ var ioEvents = function(IO) {
          * Disconnect from the room
          */
         socket.on("disconnect", () => {
-            
             IO.in(currentRoomId).emit('removePlayer', {
                 id: socket.id
             });
@@ -165,21 +164,24 @@ var ioEvents = function(IO) {
          * Create a new game room. 
          */
         socket.on('createGame', function (data) {
-            
             const roomId = data.name.split(' ')[0] + '-' + socket.id; //creating private lobby
             socket.join(roomId);
             currentRoomId = roomId;
+
+            IO.in(socket.id).emit('test', {
+                msg: 'test msg'
+            });
 
             socket.emit('newGame', {
                 name: data.name,
                 room: roomId
             });
-
-            socket.emit('addPlayer', {
+            let addPlayerOptions = {
                 name: data.name,
                 id: socket.id,
                 score: 0
-            });
+            }
+            socket.emit('addPlayer', addPlayerOptions);
             
             gameData[roomId] = {};
             gameData[roomId].players = new Array();
@@ -188,7 +190,6 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             });
-            console.log(gameData)
         });
 
         /**
@@ -200,12 +201,12 @@ var ioEvents = function(IO) {
             if (room && room.length > 0) {
                 socket.join(data.room);
                 currentRoomId = data.room;
-              
-                IO.in(data.room).emit('addPlayer', {
+                let addPlayerOptions = {
                     name: data.name,
                     id: socket.id,
                     score: 0
-                });
+                }
+                IO.in(data.room).emit('addPlayer', addPlayerOptions);
 
                 gameData[data.room].players.push({
                     name: data.name,
@@ -224,6 +225,10 @@ var ioEvents = function(IO) {
             IO.in(data.room).emit('onRefresh');
         });
 
+        socket.on('refreshItem', function (data) {
+            IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
+        });
+
         socket.on('newItem', function (data) {
             IO.in(data.room).emit('onNewItem', { itemId: data.itemId});
         });
@@ -234,7 +239,7 @@ var ioEvents = function(IO) {
         });
 
         socket.on('getPlayers', function (data) {
-            var room = IO.nsps['/'].adapter.rooms[data.room];
+            var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
                 socket.emit('onGetPlayers', { players: gameData[data.room].players});              
             } else {
@@ -263,3 +268,4 @@ var init = function(_io) {
 }
 
 module.exports = { init };
+
