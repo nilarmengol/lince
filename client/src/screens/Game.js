@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import queryString_test from 'query-string'
 import "../styles/game.css";
 import { itemsIcons } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
@@ -7,12 +8,12 @@ import io from "socket.io-client";
 //const ENDPOINT = window.location.hostname;
 //Local
 const ENDPOINT = "http://127.0.0.1:4001/game";
-let socket;
+const socket = io(ENDPOINT);
 
 function Game() {
   //const ENDPOINT = "http://127.0.0.1:4001/home";
-  socket = io(ENDPOINT);
-  
+  // socket = io(ENDPOINT);
+
   const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
@@ -30,14 +31,15 @@ function Game() {
   const [urlPath, setUrlPath] = useState("");
 
   useEffect(() => {
-    const queryString = window.location.search;
+    let queryString = window.location.search;
+    queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
+
     if (lobbyValue) setLobby(lobbyValue);
 
     let url = window.location.href;
     if (url.indexOf("?") > -1) setUrlPath(window.location.href);
-
     socket.on("newGame", function(data) {
       let url = window.location.href;
       if (url.indexOf("?") > -1) {
@@ -62,18 +64,21 @@ function Game() {
       let filteredArray = players.filter(item => item.id !== data.id);
       setPlayers(filteredArray);
     });
-  }, [players]);
+  }, [players, setPlayers, setLobby, setPlayerJoined, setUrlPath]);
 
   const newGame = () => {
     socket.emit("createGame", { name: userName });
   };
 
   const joinGame = () => {
-    const queryString = window.location.search;
+    //const queryString = window.location.search;
+    let queryString = window.location.search;
+    queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
-    const lobbyParam = urlParams.get("lobby");
+    let lobbyParam = urlParams.get("lobby");
     socket.emit("joinGame", { room: lobbyParam, name: userName });
     setPlayerJoined(true);
+
   };
 
   const copyToClipboard = () => {
@@ -222,6 +227,12 @@ function Item(props) {
       setRefreshButtonDisabled(true);
       setRandomItem(itemsIcons[data.itemId]);
     });
+
+    socket.on("onRefreshItem", function(data) {
+      setSuccess(false);
+      setRandomItem(itemsIcons[data.itemId]);
+    });
+
   }, [
     items,
     setItems,
@@ -244,6 +255,16 @@ function Item(props) {
   const relocate = () => {
     socket.emit("refresh", { room: lobby });
   };
+
+  const refresh_image = () => {
+    setSuccess(false);
+    setRefreshButtonDisabled(true);
+    const itemId = Math.floor(Math.random() * itemsIcons.length);
+    setRandomItem(itemsIcons[itemId]);
+    socket.emit("refreshItem", { room: lobby, itemId: itemId });
+  };
+
+  if(success){ refresh_image();}
 
   return (
     <div>
@@ -278,7 +299,7 @@ function Players(props) {
   const { players, success, lobby, winner, setPlayers } = props;
 
   useEffect(() => {
-    socket.emit("getPlayers", { room: lobby });
+    socket.emit("getPlayers", { room: lobby});
     socket.on("onGetPlayers", function(data) {
       setPlayers(data.players);
     });
@@ -343,6 +364,8 @@ function Boardgame(props) {
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
+            socket.on("onUpdateBoard", function(data) {
+            });
           }
         });
       }

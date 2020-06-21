@@ -33,7 +33,7 @@ ReactDOM.render(
   <React.StrictMode>
     <Router>
         <div>
-          <Redirect from="*" to="/"/>
+          {/* <Redirect from="*" to="/"/> */}
           <Route exact path={"/"} component={App} />    
           <Route path={"/transition"} component={Transition} />
           <Route path={"/lobby"} component={Lobby} />

@@ -9,6 +9,8 @@
 // export default App;
 
 import React, { useState, useEffect } from "react";
+// google adsense
+import AdSense from 'react-adsense';
 // Importing the Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./styles/App.css";
@@ -151,13 +153,21 @@ function App() {
                   </ListGroupItem>
                 </ListGroup>
               <Card.Body>
-                <Card.Title>Google ad here</Card.Title>
+                {/* <Card.Title>Google ad here</Card.Title>
                 
                 <Card.Text>
                   Some quick example text to build on the card title and make up the bulk of
                   the card's content.
-                </Card.Text>
-               
+                </Card.Text> */}
+                <AdSense.Google
+                  client='ca-pub-4780603485802173'
+                  slot='2930227358'
+                  style={{ display: 'block' }}
+                  format='auto'
+                  data-adtest="on"
+                  responsive='true'
+                  layoutKey='-gw-1+2a-9x+5c'
+                />    
               </Card.Body>
             </Card>
             </Form>

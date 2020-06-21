@@ -145,8 +145,8 @@
 }
 
 .bigIcon {
-  height: 5rem;
-  width: 5rem;
+  height: auto;
+  width: 152px;
   display: block;
 
   padding: 50px;
