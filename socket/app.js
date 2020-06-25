@@ -7,7 +7,8 @@ const port = process.env.PORT || 4001;
 const app = express();
 const server = http.createServer(app);
 
-const io = require('./index').init(server);
+//const io = require('./index').init(server);
+const io = require('./game.socket').init(server);
 
 // serve static files
 app.use(express.static(path.join(__dirname, '..', 'client', 'build')));

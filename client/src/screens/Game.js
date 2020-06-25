@@ -7,7 +7,8 @@ import io from "socket.io-client";
 //Deploy
 //const ENDPOINT = window.location.hostname;
 //Local
-const ENDPOINT = "http://127.0.0.1:4001/game";
+//const ENDPOINT = "http://127.0.0.1:4001/game";
+const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
 function Game() {
@@ -228,10 +229,10 @@ function Item(props) {
       setRandomItem(itemsIcons[data.itemId]);
     });
 
-    socket.on("onRefreshItem", function(data) {
-      setSuccess(false);
-      setRandomItem(itemsIcons[data.itemId]);
-    });
+    // socket.on("onRefreshItem", function(data) {
+    //   setSuccess(false);
+    //   setRandomItem(itemsIcons[data.itemId]);
+    // });
 
   }, [
     items,
@@ -256,15 +257,15 @@ function Item(props) {
     socket.emit("refresh", { room: lobby });
   };
 
-  const refresh_image = () => {
-    setSuccess(false);
-    setRefreshButtonDisabled(true);
-    const itemId = Math.floor(Math.random() * itemsIcons.length);
-    setRandomItem(itemsIcons[itemId]);
-    socket.emit("refreshItem", { room: lobby, itemId: itemId });
-  };
+  // const refresh_image = () => {
+  //   setSuccess(false);
+  //   setRefreshButtonDisabled(true);
+  //   const itemId = Math.floor(Math.random() * itemsIcons.length);
+  //   setRandomItem(itemsIcons[itemId]);
+  //   socket.emit("refreshItem", { room: lobby, itemId: itemId });
+  // };
 
-  if(success){ refresh_image();}
+  // if(success){ refresh_image();}
 
   return (
     <div>

@@ -181,7 +181,7 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             }
-            socket.emit('addPlayer', addPlayerOptions);
+            //socket.emit('addPlayer', addPlayerOptions);
             
             gameData[roomId] = {};
             gameData[roomId].players = new Array();
@@ -190,6 +190,10 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             });
+
+            socket.emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[roomId].players });
+
+
         });
 
         /**
@@ -206,13 +210,15 @@ var ioEvents = function(IO) {
                     id: socket.id,
                     score: 0
                 }
-                IO.in(data.room).emit('addPlayer', addPlayerOptions);
+                //IO.in(data.room).emit('addPlayer', addPlayerOptions);
 
                 gameData[data.room].players.push({
                     name: data.name,
                     id: socket.id,
                     score: 0
                 });
+
+                IO.in(data.room).emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[data.room].players });
                 
             } else {
                 socket.emit('err', {
@@ -225,9 +231,9 @@ var ioEvents = function(IO) {
             IO.in(data.room).emit('onRefresh');
         });
 
-        socket.on('refreshItem', function (data) {
-            IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
-        });
+        // socket.on('refreshItem', function (data) {
+        //     IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
+        // });
 
         socket.on('newItem', function (data) {
             IO.in(data.room).emit('onNewItem', { itemId: data.itemId});
@@ -260,8 +266,10 @@ var ioEvents = function(IO) {
  * Initialize /arenas name space
  *
  */
-var init = function(_io) {
-    var nsp = _io.of('/game');
+var init = function(server) {
+    var _io = require('socket.io')(server);
+    var nsp = _io.of('/');
+    //var nsp = _io.of('/game');
     // Define all Events
     ioEvents(nsp);
     return _io;

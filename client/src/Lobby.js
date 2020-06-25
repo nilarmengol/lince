@@ -21,25 +21,41 @@ import io from "socket.io-client";
 
 
 function Lobby(props) {
-    const ENDPOINT = "http://127.0.0.1:4001/lobby";
-    let socket;
+    //const ENDPOINT = "http://127.0.0.1:4001/lobby";
+    const ENDPOINT = "http://127.0.0.1:4001/";
+    // let socket;
+    const socket = io(ENDPOINT);
     const [urlPath, setUrlPath] = useState("");
     const history = useHistory();
+    const [copySuccess, setCopySuccess] = useState("");
+
+    // 
+    const [lobby, setLobby] = useState("");
+    const [players, setPlayers] = useState([]);
+    const [userName, setUsername] = useState("");
+
+
 
     function handlePlayClick() {
       history.push("/game");
     }
 
+    const copyToClipboard = () => {
+      navigator.clipboard.writeText(urlPath);
+      setCopySuccess("Copied!");
+    };
+
     useEffect(() => {
-      socket = io(ENDPOINT);
+      // socket = io(ENDPOINT);
       socket.on("lobbyEntered", function(data) {
-        console.log(data);
-        
       });
+      setPlayers(props.location.state.players);
+      setUrlPath(props.location.state.urlPath);
+      setUsername(props.location.state.userName);
+      
     }, []);
 
     return (
-        
     <Container className="p-3" >
     <Jumbotron className="text-center">
       <h2>Gran Lince!</h2>
@@ -48,7 +64,7 @@ function Lobby(props) {
       <Row>
         <Col className="p-0 pr-1">
           <Card fluid="true">
-              <Card.Header className="text-left"><h5>{props.location.state.userName}'s Private Lobby</h5></Card.Header>
+              <Card.Header className="text-left"><h5>{userName}'s Private Lobby</h5></Card.Header>
                 <ListGroup className="list-group-flush">
                 <ListGroupItem>
                     <Form className="text-left">
@@ -87,6 +103,19 @@ function Lobby(props) {
                 <Button variant="success" size="lg" block onClick={handlePlayClick}>
                   Start Game!
                 </Button>
+                </ListGroupItem>
+                <ListGroupItem>
+                {urlPath ? (
+                    <span>
+                      <input type="text" style={{width:'100%', marginBottom:10}} value={urlPath} readOnly />
+                      <Button variant="secondary" size="lg" block onClick={copyToClipboard}>
+                        Invite
+                      </Button>
+                      {copySuccess}
+                    </span>
+                  ) : (
+                    <span></span>
+                  )}
                 </ListGroupItem>
                 
               </ListGroup>

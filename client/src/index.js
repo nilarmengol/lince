@@ -34,7 +34,7 @@ ReactDOM.render(
     <Router>
         <div>
           {/* <Redirect from="*" to="/"/> */}
-          <Route exact path={"/"} component={App} />    
+          <Route exact path={"/"} component={App} />
           <Route path={"/transition"} component={Transition} />
           <Route path={"/lobby"} component={Lobby} />
           <Route path={"/game"} component={Game} />
