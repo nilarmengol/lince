@@ -84,33 +84,6 @@ function App() {
     if (lobbyValue) {
       setLobby(lobbyValue);
     } 
-    let url = window.location.href;
-    if (url.indexOf("?") > -1) setUrlPath(window.location.href); 
-
-    // create and add player
-    socket.on("newGame", function(data) {
-      let url = window.location.href;
-      if (url.indexOf("?") > -1) {
-        url += "&lobby=" + data.room;
-      } else {
-        url += "?lobby=" + data.room;
-      }
-      setUrlPath(url);
-      setLobby(data.room);
-      //setPlayerJoined(true);
-    });
-    socket.on("addPlayer", function(data) {
-      let player = {};
-      player.name = data.currentPlayer.name;
-      player.id = data.currentPlayer.id;
-      player.score = 0;
-      const a =  [...players, player]
-      setPlayers([...players, player]);
-      setAllPlayers(data.allPlayers);
-    })
-    if(userName){
-      history.push(nextPage, { userName: userName, id: 1, players: players, allPlayers: allPlayers, urlPath:urlPath});
-    }
   }, [players]);
 
   const createRoom = (event) => {
@@ -123,29 +96,17 @@ function App() {
     setValidated(true);
     if (form.checkValidity())
     {
+      let url = window.location.href;
       if(!lobby){
         // create game
-        socket.emit("createGame", { name: userName });
+        history.push(nextPage, { userName: userName, id: 1, action: 'create', url:url});
       }else{
         // join game
         let queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        let lobbyParam = urlParams.get("lobby");
-        socket.emit("joinGame", { room: lobbyParam, name: userName });
+        history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
       }
     } 
   };
-
-  // function handlePlayClick() {
-  //   //history.push("/transition");
-  // }
-
-  // function handlePrivateRoomClick() {
-  //   if(!userName) {
-  //     console.log(userName);
-  //     return false;
-  //   }    
-  // }
 
   return (
     

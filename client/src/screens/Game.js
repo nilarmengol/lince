@@ -11,10 +11,9 @@ import io from "socket.io-client";
 const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
-function Game() {
+function Game(props) {
   //const ENDPOINT = "http://127.0.0.1:4001/home";
   // socket = io(ENDPOINT);
-
   const [items, setItems] = useState(itemsIcons);
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
@@ -32,13 +31,13 @@ function Game() {
   const [urlPath, setUrlPath] = useState("");
 
   useEffect(() => {
+    setUsername(props.location.state.userName);
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
 
     if (lobbyValue) setLobby(lobbyValue);
-
     let url = window.location.href;
     if (url.indexOf("?") > -1) setUrlPath(window.location.href);
     socket.on("newGame", function(data) {
@@ -229,11 +228,6 @@ function Item(props) {
       setRandomItem(itemsIcons[data.itemId]);
     });
 
-    // socket.on("onRefreshItem", function(data) {
-    //   setSuccess(false);
-    //   setRandomItem(itemsIcons[data.itemId]);
-    // });
-
   }, [
     items,
     setItems,
@@ -359,7 +353,7 @@ function Boardgame(props) {
   ]);
 
   const score = item => {
-    if (item === randomItem) {
+    if (item === randomItem){
       if (!winner) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {

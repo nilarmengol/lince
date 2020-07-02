@@ -168,10 +168,6 @@ var ioEvents = function(IO) {
             socket.join(roomId);
             currentRoomId = roomId;
 
-            IO.in(socket.id).emit('test', {
-                msg: 'test msg'
-            });
-
             socket.emit('newGame', {
                 name: data.name,
                 room: roomId
@@ -181,8 +177,6 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             }
-            //socket.emit('addPlayer', addPlayerOptions);
-            
             gameData[roomId] = {};
             gameData[roomId].players = new Array();
             gameData[roomId].players.push({
@@ -192,8 +186,6 @@ var ioEvents = function(IO) {
             });
 
             socket.emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[roomId].players });
-
-
         });
 
         /**
@@ -201,7 +193,6 @@ var ioEvents = function(IO) {
          */
         socket.on('joinGame', function (data) {
             var room = IO.adapter.rooms[data.room];
-            
             if (room && room.length > 0) {
                 socket.join(data.room);
                 currentRoomId = data.room;
@@ -211,15 +202,12 @@ var ioEvents = function(IO) {
                     score: 0
                 }
                 //IO.in(data.room).emit('addPlayer', addPlayerOptions);
-
                 gameData[data.room].players.push({
                     name: data.name,
                     id: socket.id,
                     score: 0
                 });
-
                 IO.in(data.room).emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[data.room].players });
-                
             } else {
                 socket.emit('err', {
                     message: 'Sorry, The room is full!'
@@ -235,13 +223,20 @@ var ioEvents = function(IO) {
         //     IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
         // });
 
+             /**
+         * Create a new game room. 
+         */
+        socket.on('startGame', function (data) {
+            IO.in(data.room).emit('startGameRes', {room :data.room});
+        });
+
         socket.on('newItem', function (data) {
             IO.in(data.room).emit('onNewItem', { itemId: data.itemId});
         });
 
         socket.on('updateBoard', function (data) {
             data.winner.score = data.winner.score +1;
-            IO.in(data.room).emit('onUpdateBoard', { room: data.lobby, winner: data.winner });
+            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
         });
 
         socket.on('getPlayers', function (data) {

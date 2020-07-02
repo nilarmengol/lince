@@ -13,6 +13,7 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Form from 'react-bootstrap/Form';
 import { useHistory } from "react-router-dom";
+import queryString from 'query-string';
 
 import io from "socket.io-client";
 //Deploy
@@ -27,17 +28,26 @@ function Lobby(props) {
     const socket = io(ENDPOINT);
     const [urlPath, setUrlPath] = useState("");
     const history = useHistory();
-    const [copySuccess, setCopySuccess] = useState("");
 
     // 
-    const [lobby, setLobby] = useState("");
-    const [players, setPlayers] = useState([]);
+    const [randomItem, setRandomItem] = useState("");
+    const [success, setSuccess] = useState(false);
     const [userName, setUsername] = useState("");
+    const [adminName, setAdminName] = useState("");
+    const [lobby, setLobby] = useState("");
+    const [playerJoined, setPlayerJoined] = useState("");
+    const [winner, setWinner] = useState("");
+    const [players, setPlayers] = useState([]);
+    const [buttonDisabled, setButtonDisabled] = useState(true);
+    const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
+    const [copySuccess, setCopySuccess] = useState("");
+    const [redirection, setRedirection] = useState(false);
 
 
 
     function handlePlayClick() {
-      history.push("/game");
+      //history.push("/game?lobby="+lobby, {userName: userName});
+      socket.emit("startGame", { room: lobby,name: userName });
     }
 
     const copyToClipboard = () => {
@@ -45,14 +55,76 @@ function Lobby(props) {
       setCopySuccess("Copied!");
     };
 
+  
+    useEffect(() => {}, [success]);
+
+  
     useEffect(() => {
-      // socket = io(ENDPOINT);
-      socket.on("lobbyEntered", function(data) {
-      });
-      setPlayers(props.location.state.players);
-      setUrlPath(props.location.state.urlPath);
+      if(props.location.state.userName){
       setUsername(props.location.state.userName);
-      
+      }
+      let queryString = window.location.search;
+      queryString = queryString.concat(window.location.hash);
+      const urlParams = new URLSearchParams(queryString);
+      const lobbyValue = urlParams.get("lobby");
+  
+      if (lobbyValue) setLobby(lobbyValue);
+  
+      let url = window.location.href;
+      //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
+      socket.on("newGame", function(data) {
+        //let url = window.location.href;
+        let url = props.location.state.url;
+        if (url.indexOf("?") > -1) {
+          url += "&lobby=" + data.room;
+        } else {
+          url += "?lobby=" + data.room;
+        }
+        setUrlPath(url);
+        setLobby(data.room);
+        setPlayerJoined(true);
+      });
+  
+      socket.on("addPlayer", function(data) {
+        let player = {};
+        player.name = data.name;
+        player.id = data.id;
+        player.score = 0;
+        //setPlayers([...players, player]);
+        setPlayers(data.allPlayers);
+        setAdminName(data.allPlayers[0].name)
+        if(data.currentPlayer.name == data.allPlayers[0].name){
+
+          setButtonDisabled(false)
+        }
+      });
+  
+      socket.on("removePlayer", function(data) {
+        let filteredArray = players.filter(item => item.id !== data.id);
+        setPlayers(filteredArray);
+      });
+
+      socket.on("startGameRes", function(data) {
+        setRedirection(true)
+      });
+      if(redirection){
+        history.push("/game?lobby="+lobby, {userName: userName});
+      }
+
+    }, [players, redirection]);
+
+    useEffect(() => {
+        if(props.location.state.action == "create"){  
+        socket.emit("createGame", { name: props.location.state.userName });
+        }
+        if(props.location.state.action == "join"){
+            let queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            let lobbyParam = urlParams.get("lobby");
+            socket.emit("joinGame", { room: lobbyParam, name: props.location.state.userName });
+            setUrlPath(props.location.state.url);
+            setPlayerJoined(true);
+        }
     }, []);
 
     return (
@@ -64,7 +136,7 @@ function Lobby(props) {
       <Row>
         <Col className="p-0 pr-1">
           <Card fluid="true">
-              <Card.Header className="text-left"><h5>{userName}'s Private Lobby</h5></Card.Header>
+              <Card.Header className="text-left"><h5>{adminName}'s Private Lobby</h5></Card.Header>
                 <ListGroup className="list-group-flush">
                 <ListGroupItem>
                     <Form className="text-left">
@@ -100,7 +172,7 @@ function Lobby(props) {
                     </Form>
                 </ListGroupItem>
                 <ListGroupItem>
-                <Button variant="success" size="lg" block onClick={handlePlayClick}>
+                <Button variant="success" size="lg" block onClick={handlePlayClick} disabled={buttonDisabled}>
                   Start Game!
                 </Button>
                 </ListGroupItem>
@@ -127,17 +199,24 @@ function Lobby(props) {
               <Card.Header className="text-left"><h5>Players Joined</h5></Card.Header>
               <Card.Body>
                 <ListGroup>
-                    <ListGroupItem>
+                    {/* <ListGroupItem>
                         <Button variant="primary" size="sm" block>
                         Player1
                         </Button>
-                        </ListGroupItem>
-                        <ListGroupItem>
+                      </ListGroupItem>
+                      <ListGroupItem>
                         <Button variant="primary" size="sm" block>
                         Player2
                         </Button>
+                      </ListGroupItem> */}
+                      {players.map((person, index) => (
+                          <ListGroupItem key={person.id}>
+                          <Button variant="primary" size="sm" block>
+                          {person.name}
+                          </Button>
                         </ListGroupItem>
-                    </ListGroup>
+                      ))}
+                </ListGroup>
               </Card.Body>
           </Card>
         </Col>
