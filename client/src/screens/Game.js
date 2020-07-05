@@ -19,7 +19,7 @@ function Game(props) {
   const [success, setSuccess] = useState(false);
   const [userName, setUsername] = useState("");
   const [lobby, setLobby] = useState("");
-  const [playerJoined, setPlayerJoined] = useState("");
+  const [playerJoined, setPlayerJoined] = useState(true);
   const [winner, setWinner] = useState("");
   const [players, setPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState("");
@@ -28,18 +28,38 @@ function Game(props) {
 
   useEffect(() => {}, [success]);
 
+
+  useEffect(() => {
+    let queryString = window.location.search;
+    queryString = queryString.concat(window.location.hash);
+    console.log("queryString",queryString);
+    const urlParams = new URLSearchParams(queryString);
+    const lobbyValue = urlParams.get("lobby");
+    //socket.emit("joinGame", { room: lobbyValue, name: userName });
+    //socket.emit("getPlayers", { room: lobbyValue});
+    
+  }, []);
+
+
   const [urlPath, setUrlPath] = useState("");
 
   useEffect(() => {
+    console.log("game useeffect")
     setUsername(props.location.state.userName);
+    // console.log("game useeffect players", props.location.state.players)
+    // setPlayers(props.location.state.players);
+    // console.log("game players", players)
+
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
+    console.log("queryString",queryString);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
 
     if (lobbyValue) setLobby(lobbyValue);
     let url = window.location.href;
-    if (url.indexOf("?") > -1) setUrlPath(window.location.href);
+    //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
+
     socket.on("newGame", function(data) {
       let url = window.location.href;
       if (url.indexOf("?") > -1) {
@@ -49,22 +69,29 @@ function Game(props) {
       }
       setUrlPath(url);
       setLobby(data.room);
-      setPlayerJoined(true);
+      //setPlayerJoined(true);
     });
 
     socket.on("addPlayer", function(data) {
       let player = {};
-      player.name = data.name;
-      player.id = data.id;
+      player.name = data.currentPlayer.name;
+      player.id = data.currentPlayer.id;
       player.score = 0;
-      setPlayers([...players, player]);
+      //setPlayers([...players, player]);
+      setPlayers(data.allPlayers);
+    });
+
+    socket.on("onGetPlayers", function(data) {
+      setPlayers(data.players);
     });
 
     socket.on("removePlayer", function(data) {
       let filteredArray = players.filter(item => item.id !== data.id);
       setPlayers(filteredArray);
     });
-  }, [players, setPlayers, setLobby, setPlayerJoined, setUrlPath]);
+  }, [players]);
+
+//}, [players, setPlayers, setLobby, setPlayerJoined, setUrlPath]);
 
   const newGame = () => {
     socket.emit("createGame", { name: userName });
@@ -77,7 +104,7 @@ function Game(props) {
     const urlParams = new URLSearchParams(queryString);
     let lobbyParam = urlParams.get("lobby");
     socket.emit("joinGame", { room: lobbyParam, name: userName });
-    setPlayerJoined(true);
+    //setPlayerJoined(true);
 
   };
 
@@ -228,6 +255,14 @@ function Item(props) {
       setRandomItem(itemsIcons[data.itemId]);
     });
 
+    socket.on("onRefreshItem", function(data) {
+      setWinner("");
+      setSuccess(false);
+      setButtonDisabled(false);
+      setRefreshButtonDisabled(true);
+      setRandomItem(itemsIcons[data.itemId]);
+    });
+
   }, [
     items,
     setItems,
@@ -251,15 +286,15 @@ function Item(props) {
     socket.emit("refresh", { room: lobby });
   };
 
-  // const refresh_image = () => {
-  //   setSuccess(false);
-  //   setRefreshButtonDisabled(true);
-  //   const itemId = Math.floor(Math.random() * itemsIcons.length);
-  //   setRandomItem(itemsIcons[itemId]);
-  //   socket.emit("refreshItem", { room: lobby, itemId: itemId });
-  // };
+  const refresh_image = () => {
+    setSuccess(false);
+    setRefreshButtonDisabled(true);
+    const itemId = Math.floor(Math.random() * itemsIcons.length);
+    setRandomItem(itemsIcons[itemId]);
+    socket.emit("refreshItem", { room: lobby, itemId: itemId });
+  };
 
-  // if(success){ refresh_image();}
+  if(success){ refresh_image();}
 
   return (
     <div>
@@ -298,7 +333,7 @@ function Players(props) {
     socket.on("onGetPlayers", function(data) {
       setPlayers(data.players);
     });
-  }, [lobby, setPlayers]);
+  }, [lobby]);
 
   return (
     <div className="players">
@@ -342,15 +377,10 @@ function Boardgame(props) {
         }
       });
     });
-  }, [
-    players,
-    setButtonDisabled,
-    setRefreshButtonDisabled,
-    setSuccess,
-    setPlayers,
-    setWinner,
-    winner
-  ]);
+  }, [players, winner]);
+
+//}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
+
 
   const score = item => {
     if (item === randomItem){
@@ -366,6 +396,16 @@ function Boardgame(props) {
       }
     } else {
       console.log("wrong");
+      if (!winner) {
+        let playersCopy = [...players];
+        playersCopy.forEach(function(item, i) {
+          if (item.name === userName) {
+            socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
+            socket.on("onUpdateBoard", function(data) {
+            });
+          }
+        });
+      }
     }
   };
 

@@ -202,6 +202,7 @@ var ioEvents = function(IO) {
                     score: 0
                 }
                 //IO.in(data.room).emit('addPlayer', addPlayerOptions);
+                
                 gameData[data.room].players.push({
                     name: data.name,
                     id: socket.id,
@@ -219,9 +220,9 @@ var ioEvents = function(IO) {
             IO.in(data.room).emit('onRefresh');
         });
 
-        // socket.on('refreshItem', function (data) {
-        //     IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
-        // });
+        socket.on('refreshItem', function (data) {
+            IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
+        });
 
              /**
          * Create a new game room. 
@@ -235,13 +236,16 @@ var ioEvents = function(IO) {
         });
 
         socket.on('updateBoard', function (data) {
+            console.log("updateBoard", data)
             data.winner.score = data.winner.score +1;
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
         });
 
         socket.on('getPlayers', function (data) {
+            console.log('getPlayers data',data)
             var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
+                socket.join(data.room);
                 socket.emit('onGetPlayers', { players: gameData[data.room].players});              
             } else {
                 socket.emit('err', {

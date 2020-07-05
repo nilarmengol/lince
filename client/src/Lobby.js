@@ -87,14 +87,13 @@ function Lobby(props) {
   
       socket.on("addPlayer", function(data) {
         let player = {};
-        player.name = data.name;
-        player.id = data.id;
+        player.name = data.currentPlayer.name;
+        player.id = data.currentPlayer.id;
         player.score = 0;
         //setPlayers([...players, player]);
         setPlayers(data.allPlayers);
         setAdminName(data.allPlayers[0].name)
         if(data.currentPlayer.name == data.allPlayers[0].name){
-
           setButtonDisabled(false)
         }
       });
@@ -108,7 +107,7 @@ function Lobby(props) {
         setRedirection(true)
       });
       if(redirection){
-        history.push("/game?lobby="+lobby, {userName: userName});
+        history.push("/game?lobby="+lobby, {userName: userName, players: players});
       }
 
     }, [players, redirection]);
