@@ -26,6 +26,10 @@ function Game(props) {
   const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
 
+  // 
+  const [rounds, setRounds] = useState("");
+  const [roundsLeft, setRoundsLeft] = useState("");
+
   useEffect(() => {}, [success]);
 
 
@@ -37,6 +41,12 @@ function Game(props) {
     const lobbyValue = urlParams.get("lobby");
     //socket.emit("joinGame", { room: lobbyValue, name: userName });
     //socket.emit("getPlayers", { room: lobbyValue});
+
+
+    const rounds = props.location.state.rounds;
+    console.log("Rounds", rounds)
+    setRounds(props.location.state.rounds);
+    setRoundsLeft(props.location.state.rounds);
     
   }, []);
 
@@ -46,6 +56,10 @@ function Game(props) {
   useEffect(() => {
     console.log("game useeffect")
     setUsername(props.location.state.userName);
+    // const rounds = props.location.state.rounds;
+    // console.log("Rounds", rounds)
+    // setRounds(props.location.state.rounds);
+    // setRoundsLeft(props.location.state.rounds);
     // console.log("game useeffect players", props.location.state.players)
     // setPlayers(props.location.state.players);
     // console.log("game players", players)
@@ -129,6 +143,9 @@ function Game(props) {
           winner={winner}
           setWinner={setWinner}
           lobby={lobby}
+          setRoundsLeft={setRoundsLeft}
+          roundsLeft={roundsLeft}
+          rounds={rounds}
         />
       </div>
       <div className="selections block">
@@ -147,6 +164,8 @@ function Game(props) {
           setLobby={setLobby}
           winner={winner}
           setWinner={setWinner}
+          rounds={rounds}
+          roundsLeft={roundsLeft}
         />
         <Players
           players={players}
@@ -298,6 +317,11 @@ function Item(props) {
 
   return (
     <div>
+
+      <div className="text-center">
+        <h5>{props.roundsLeft}/{props.rounds} Rounds</h5>
+      </div>
+
       <img
         className={!success ? "bigIcon neutral" : "bigIcon correct"}
         src={randomItem ? randomItem : StartIcon}
@@ -335,6 +359,11 @@ function Players(props) {
     });
   }, [lobby]);
 
+  useEffect(() => {
+    console.log("success", success);
+    console.log("winner", winner);
+  }, []);
+
   return (
     <div className="players">
       {success && <p>{winner.name} won the round</p>}
@@ -360,7 +389,10 @@ function Boardgame(props) {
     userName,
     lobby,
     winner,
-    setWinner
+    setWinner,
+    setRoundsLeft, 
+    roundsLeft,
+    rounds
   } = props;
 
   useEffect(() => {
@@ -374,6 +406,8 @@ function Boardgame(props) {
           setButtonDisabled(false);
           setRefreshButtonDisabled(false);
           setSuccess(true);
+          //setRoundsLeft(PrevCount => PrevCount - 1)
+          setRoundsLeft(roundsLeft - 1)
         }
       });
     });
@@ -381,6 +415,9 @@ function Boardgame(props) {
 
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
+  const endMatch = item => {
+    console.log("Match end");
+  }  
 
   const score = item => {
     if (item === randomItem){
@@ -389,8 +426,8 @@ function Boardgame(props) {
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            socket.on("onUpdateBoard", function(data) {
-            });
+            // socket.on("onUpdateBoard", function(data) {
+            // });
           }
         });
       }
@@ -401,8 +438,8 @@ function Boardgame(props) {
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            socket.on("onUpdateBoard", function(data) {
-            });
+            // socket.on("onUpdateBoard", function(data) {
+            // });
           }
         });
       }
@@ -417,7 +454,8 @@ function Boardgame(props) {
           className={
             item === randomItem && success ? "squareGreen square" : "square"
           }
-          onClick={() => score(item)}
+          onClick={roundsLeft > 0 ? () => score(item) : () => endMatch()}
+          disabled
         >
           <img className="square " src={item} alt={item} />
         </div>

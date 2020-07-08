@@ -43,6 +43,9 @@ function Lobby(props) {
     const [copySuccess, setCopySuccess] = useState("");
     const [redirection, setRedirection] = useState(false);
 
+    // 
+    const [rounds, setRounds] = useState("10");
+
 
 
     function handlePlayClick() {
@@ -57,6 +60,11 @@ function Lobby(props) {
 
   
     useEffect(() => {}, [success]);
+
+
+    // useEffect(() => {
+    //   console.log("rounds", rounds)
+    // }, [rounds]);
 
   
     useEffect(() => {
@@ -107,7 +115,7 @@ function Lobby(props) {
         setRedirection(true)
       });
       if(redirection){
-        history.push("/game?lobby="+lobby, {userName: userName, players: players});
+        history.push("/game?lobby="+lobby, {userName: userName, rounds: rounds, players: players});
       }
 
     }, [players, redirection]);
@@ -141,7 +149,7 @@ function Lobby(props) {
                     <Form className="text-left">
                         <Form.Label><b>Rounds</b></Form.Label>
                         <Form.Group>
-                            <Form.Control as="select">
+                            <Form.Control as="select" onChange={event => setRounds(event.target.value)}>
                                 <option>10</option>
                                 <option>20</option>
                                 <option>30</option>
