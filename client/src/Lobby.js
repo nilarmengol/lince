@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './lobby_chat.css';
 
 import Container from 'react-bootstrap/Container';
 import Jumbotron from 'react-bootstrap/Jumbotron';
@@ -13,7 +14,6 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Form from 'react-bootstrap/Form';
 import { useHistory } from "react-router-dom";
-import queryString from 'query-string';
 
 import io from "socket.io-client";
 //Deploy
@@ -45,8 +45,9 @@ function Lobby(props) {
 
     // 
     const [rounds, setRounds] = useState("10");
-
-
+    const [difficulty, setDifficulty] = useState("3");
+    const [difficulty_err, setDifficulty_err] = useState("");
+    // 
 
     function handlePlayClick() {
       //history.push("/game?lobby="+lobby, {userName: userName});
@@ -60,12 +61,6 @@ function Lobby(props) {
 
   
     useEffect(() => {}, [success]);
-
-
-    // useEffect(() => {
-    //   console.log("rounds", rounds)
-    // }, [rounds]);
-
   
     useEffect(() => {
       if(props.location.state.userName){
@@ -112,10 +107,11 @@ function Lobby(props) {
       });
 
       socket.on("startGameRes", function(data) {
-        setRedirection(true)
+        setRedirection(true);
       });
-      if(redirection){
-        history.push("/game?lobby="+lobby, {userName: userName, rounds: rounds, players: players});
+
+      if(redirection ){
+          history.push("/game?lobby="+lobby, {userName: userName, rounds: rounds, players: players, difficulty:difficulty});
       }
 
     }, [players, redirection]);
@@ -133,6 +129,10 @@ function Lobby(props) {
             setPlayerJoined(true);
         }
     }, []);
+
+    const buttonClick = (e) => {
+      setDifficulty(e.target.value);
+    };
 
     return (
     <Container className="p-3" >
@@ -155,6 +155,11 @@ function Lobby(props) {
                                 <option>30</option>
                                 <option>40</option>
                                 <option>50</option>
+                                <option>60</option>
+                                <option>70</option>
+                                <option>80</option>
+                                <option>90</option>
+                                <option>100</option>
                             </Form.Control>
                         </Form.Group>
                     </Form>
@@ -162,21 +167,11 @@ function Lobby(props) {
                 <ListGroupItem className="text-left">
                     <b> Difficulty </b>
                     <ListGroup horizontal>
-                        <ListGroup.Item>Easy</ListGroup.Item>
-                        <ListGroup.Item>Medium</ListGroup.Item>
-                        <ListGroup.Item>Hard</ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 1 ? "success" : "outline-success" } value="1" onClick={buttonClick}>Easy</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 2 ? "warning" : "outline-warning" } value="2" onClick={buttonClick}>Medium</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } value="3" onClick={buttonClick}>Hard</Button></ListGroup.Item>
+                        {/* <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } onClick={event => setDifficulty("3")}>Hard</Button></ListGroup.Item> */}
                     </ListGroup>
-                </ListGroupItem>
-                <ListGroupItem>
-                    <Form className="text-left">
-                        <Form.Label><b>Language</b></Form.Label>
-                        <Form.Group>
-                            
-                            <Form.Control as="select">
-                            <option>English</option>
-                            </Form.Control>
-                        </Form.Group>
-                    </Form>
                 </ListGroupItem>
                 <ListGroupItem>
                 <Button variant="success" size="lg" block onClick={handlePlayClick} disabled={buttonDisabled}>
@@ -206,16 +201,6 @@ function Lobby(props) {
               <Card.Header className="text-left"><h5>Players Joined</h5></Card.Header>
               <Card.Body>
                 <ListGroup>
-                    {/* <ListGroupItem>
-                        <Button variant="primary" size="sm" block>
-                        Player1
-                        </Button>
-                      </ListGroupItem>
-                      <ListGroupItem>
-                        <Button variant="primary" size="sm" block>
-                        Player2
-                        </Button>
-                      </ListGroupItem> */}
                       {players.map((person, index) => (
                           <ListGroupItem key={person.id}>
                           <Button variant="primary" size="sm" block>
@@ -230,11 +215,7 @@ function Lobby(props) {
       </Row>
      
     </Container>
-    
-    
   </Container>
-
-
     );
   }
 

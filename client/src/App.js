@@ -132,7 +132,7 @@ function App() {
                   
                   
                     <Row>
-                      <Col sm={8}>
+                      <Col sm={12}>
                           <InputGroup>
                             <Form.Control
                               type="text"
@@ -146,7 +146,7 @@ function App() {
                             </Form.Control.Feedback>
                           </InputGroup>
                       </Col>
-                      <Col sm={4}>
+                      {/* <Col sm={4}>
                         <Form>
                           <Form.Group>
                             <Form.Control as="select">
@@ -154,7 +154,7 @@ function App() {
                             </Form.Control>
                           </Form.Group>
                         </Form>
-                      </Col>
+                      </Col> */}
                     </Row>
                   
 

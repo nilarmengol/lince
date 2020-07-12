@@ -523,7 +523,7 @@ import Horse2 from "../icons/horse-2.png";
 import Joker2 from "../icons/joker-2.png";
 import Pig2 from "../icons/pig-2.png";
 
-export const itemsIcons = [
+export const itemsIcons_all = [
   Pineapple,
   Watermelon,
   Aquarium,

@@ -231,18 +231,20 @@ var ioEvents = function(IO) {
             IO.in(data.room).emit('startGameRes', {room :data.room});
         });
 
+        socket.on('groupMsg', function (data) {
+            IO.in(data.room).emit('onGroupMsg', {room :data.room, name: data.name, message: data.message});
+        });
+
         socket.on('newItem', function (data) {
             IO.in(data.room).emit('onNewItem', { itemId: data.itemId});
         });
 
         socket.on('updateBoard', function (data) {
-            console.log("updateBoard", data)
             data.winner.score = data.winner.score +1;
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
         });
 
         socket.on('getPlayers', function (data) {
-            console.log('getPlayers data',data)
             var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
                 socket.join(data.room);

@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from "react";
 import queryString_test from 'query-string'
 import "../styles/game.css";
-import { itemsIcons } from "../assets/Assets";
+import { itemsIcons_all } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
+
+// 
+import '../lobby_chat.css';
+import * as Icon from 'react-bootstrap-icons';
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Container from 'react-bootstrap/Container';
+import Jumbotron from 'react-bootstrap/Jumbotron';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
+
 //Deploy
 //const ENDPOINT = window.location.hostname;
 //Local
@@ -11,10 +25,15 @@ import io from "socket.io-client";
 const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
+//const itemsIcons = itemsIcons_all.slice(0, 200);
+//let itemsIcons = itemsIcons_all.slice(0, 200);
+
 function Game(props) {
   //const ENDPOINT = "http://127.0.0.1:4001/home";
   // socket = io(ENDPOINT);
-  const [items, setItems] = useState(itemsIcons);
+
+  //const [items, setItems] = useState(itemsIcons);
+  const [items, setItems] = useState("");
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
   const [userName, setUsername] = useState("");
@@ -29,44 +48,89 @@ function Game(props) {
   // 
   const [rounds, setRounds] = useState("");
   const [roundsLeft, setRoundsLeft] = useState("");
+  const [gameWinner, setGameWinner] = useState("");
+  //let itemsIcons = itemsIcons_all.slice(0, 200);
+
+  // 
+  const [msgs, setMsg] = useState("");
+  const [allMsg, setAllMsg] = useState("");
+  const [userMsg, setUserMsg] = useState("");
 
   useEffect(() => {}, [success]);
 
+  useEffect(() => {
+    if(msgs)
+    {
+    setAllMsg([...allMsg, msgs]);
+    }
+    
+  }, [msgs]);
+
+  useEffect(() => {
+    if(winner)
+    {
+      if(winner.score > rounds/players.length){
+        setGameWinner(winner);
+      }else{
+        setRoundsLeft(roundsLeft - 1)
+      }  
+    }
+  }, [winner]);
+  
 
   useEffect(() => {
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
-    console.log("queryString",queryString);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
-    //socket.emit("joinGame", { room: lobbyValue, name: userName });
-    //socket.emit("getPlayers", { room: lobbyValue});
-
-
     const rounds = props.location.state.rounds;
-    console.log("Rounds", rounds)
     setRounds(props.location.state.rounds);
     setRoundsLeft(props.location.state.rounds);
+
+    const difficulty = props.location.state.difficulty;
     
+    let itemsIcons = "";
+    switch (difficulty) {
+      case '1':
+        console.log("case 1");
+        itemsIcons = itemsIcons_all.slice(0, 200);
+        setItems(itemsIcons_all.slice(0, 200));
+        break;
+      case '2':
+        console.log("case 2");
+        itemsIcons = itemsIcons_all.slice(0, 300);
+        setItems(itemsIcons_all.slice(0, 300));
+        break;
+      case '3':
+        console.log("case 3");
+        itemsIcons = itemsIcons_all.slice(0, 500);
+        setItems(itemsIcons_all.slice(0, 500));
+        break;
+      default:
+        console.log("case default");
+        itemsIcons = itemsIcons_all.slice(0, 400);
+        setItems(itemsIcons_all.slice(0, 400));
+        break;
+    }
+    itemsIcons ? setItems(itemsIcons) : setItems("")
+
+    socket.on("onGroupMsg", function(data) {
+      let msg = {};
+      msg.name = data.name;
+      msg.message = data.message;
+      setMsg(msg);
+    });
   }, []);
+
+
 
 
   const [urlPath, setUrlPath] = useState("");
 
   useEffect(() => {
-    console.log("game useeffect")
     setUsername(props.location.state.userName);
-    // const rounds = props.location.state.rounds;
-    // console.log("Rounds", rounds)
-    // setRounds(props.location.state.rounds);
-    // setRoundsLeft(props.location.state.rounds);
-    // console.log("game useeffect players", props.location.state.players)
-    // setPlayers(props.location.state.players);
-    // console.log("game players", players)
-
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
-    console.log("queryString",queryString);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
 
@@ -146,6 +210,7 @@ function Game(props) {
           setRoundsLeft={setRoundsLeft}
           roundsLeft={roundsLeft}
           rounds={rounds}
+          gameWinner={gameWinner}
         />
       </div>
       <div className="selections block">
@@ -166,6 +231,7 @@ function Game(props) {
           setWinner={setWinner}
           rounds={rounds}
           roundsLeft={roundsLeft}
+          itemsIcons={items}
         />
         <Players
           players={players}
@@ -173,6 +239,14 @@ function Game(props) {
           lobby={lobby}
           winner={winner}
           setPlayers={setPlayers}
+          gameWinner={gameWinner}
+          rounds={rounds}
+          userMsg={userMsg}
+          setUserMsg={setUserMsg}
+          userName={userName}
+          allMsg={allMsg}
+          roundsLeft={roundsLeft}
+
         />
         <br />
         {urlPath ? (
@@ -242,7 +316,9 @@ function Item(props) {
     setItems,
     items,
     lobby,
-    setWinner
+    setWinner,
+    winner,
+    itemsIcons
   } = props;
 
   useEffect(() => {
@@ -282,6 +358,8 @@ function Item(props) {
       setRandomItem(itemsIcons[data.itemId]);
     });
 
+  //if(success){ random();}
+
   }, [
     items,
     setItems,
@@ -291,6 +369,11 @@ function Item(props) {
     setRefreshButtonDisabled,
     setWinner
   ]);
+
+  useEffect(() => {
+    if(success){ refresh_image();}
+  }, [success]);
+
 
   const random = () => {
     setSuccess(false);
@@ -313,7 +396,7 @@ function Item(props) {
     socket.emit("refreshItem", { room: lobby, itemId: itemId });
   };
 
-  if(success){ refresh_image();}
+  // if(success){ refresh_image();}
 
   return (
     <div>
@@ -350,7 +433,7 @@ function Item(props) {
 }
 
 function Players(props) {
-  const { players, success, lobby, winner, setPlayers } = props;
+  const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, rounds, setUserMsg, userMsg, userName, allMsg } = props;
 
   useEffect(() => {
     socket.emit("getPlayers", { room: lobby});
@@ -360,19 +443,86 @@ function Players(props) {
   }, [lobby]);
 
   useEffect(() => {
-    console.log("success", success);
-    console.log("winner", winner);
   }, []);
 
+
+  function handleChange(e) {
+    setUserMsg(e.target.value);
+  }
+
+  function handleSubmit() {
+    if(userMsg){
+    socket.emit("groupMsg", { room: lobby,name: userName, message: userMsg});
+    setUserMsg("");
+    }
+  }
+
   return (
+    <>
     <div className="players">
-      {success && <p>{winner.name} won the round</p>}
+      {roundsLeft != 0 && !gameWinner && success && <p>{winner.name} won the round</p>}
+      { gameWinner && <p>{gameWinner.name} won the game</p>}
+      {roundsLeft == 0 && winner.score == rounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
         <div key={index} className="player">
           <p>{player.name}</p> <p className="score">Score: {player.score}</p>
         </div>
       ))}
     </div>
+
+    <Card fluid="true" className="mt-3">
+    <Card.Header className="text-left"><h5>Chat</h5></Card.Header>
+    <Card.Body>
+      <div className="chatWindow">
+        {allMsg != "" ? (
+        <ul className="chat" id="chatList">
+          {allMsg.map(data => (
+            allMsg.length > 0 ? (
+            <div>
+              {userName === data.name ? (
+                <li className="self">
+                  <div className="msg">
+                    <p>{data.name}</p>
+                    <div className="message"> {data.message}</div>
+                  </div>
+                </li>
+              ) : (
+                <li className="other">
+                  <div className="msg">
+                    <p>{data.name}</p>
+                  <div className="message"> {data.message}</div>
+                  </div>
+                </li>
+              )}
+            </div>) : <></>
+          ))}
+        </ul>) : <></> }
+        <div className="chatInputWrapper">
+          <form >
+            <div className="message_input ">
+              <input
+                className="textarea input "
+                type="text"
+                placeholder="Enter your message..."
+                value={userMsg}
+                onChange={handleChange}
+              />
+              <span className="message_submit" >
+                <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} />
+                {/* <Button variant="primary" size="sm" block onClick={handleSubmit}>Send</Button> */}
+                </span>
+            </div>
+            {/* <Button variant="primary" size="sm" block onClick={handleSubmit}>Send</Button> */}
+          </form>
+        </div>
+        </div>
+    </Card.Body>
+    </Card>
+
+
+   </>             
+
+
   );
 }
 
@@ -392,7 +542,8 @@ function Boardgame(props) {
     setWinner,
     setRoundsLeft, 
     roundsLeft,
-    rounds
+    rounds,
+    gameWinner
   } = props;
 
   useEffect(() => {
@@ -406,12 +557,10 @@ function Boardgame(props) {
           setButtonDisabled(false);
           setRefreshButtonDisabled(false);
           setSuccess(true);
-          //setRoundsLeft(PrevCount => PrevCount - 1)
-          setRoundsLeft(roundsLeft - 1)
         }
       });
     });
-  }, [players, winner]);
+  }, [players]);
 
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
@@ -433,7 +582,7 @@ function Boardgame(props) {
       }
     } else {
       console.log("wrong");
-      if (!winner) {
+      //if (!winner) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
@@ -442,11 +591,12 @@ function Boardgame(props) {
             // });
           }
         });
-      }
+      //}
     }
   };
 
   return (
+    items != "" ? (
     <div className="items">
       {items.map((item, index) => (
         <div
@@ -454,13 +604,15 @@ function Boardgame(props) {
           className={
             item === randomItem && success ? "squareGreen square" : "square"
           }
-          onClick={roundsLeft > 0 ? () => score(item) : () => endMatch()}
+          onClick={roundsLeft > 0 && !gameWinner ? () => score(item) : () => endMatch()}
           disabled
         >
           <img className="square " src={item} alt={item} />
         </div>
       ))}
     </div>
+    ) : 
+    <> </>
   );
 }
 
