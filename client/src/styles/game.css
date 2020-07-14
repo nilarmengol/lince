@@ -168,3 +168,11 @@
     padding: 20px;
   }
 }
+
+/*  */
+
+.countdownDiv{
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+}

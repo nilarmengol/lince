@@ -99,6 +99,11 @@ function Lobby(props) {
         if(data.currentPlayer.name == data.allPlayers[0].name){
           setButtonDisabled(false)
         }
+        // localstorage
+        if(localStorage.getItem('userInfo') == null){
+          localStorage.setItem('userInfo', data.currentPlayer);
+        }
+
       });
   
       socket.on("removePlayer", function(data) {
@@ -111,7 +116,7 @@ function Lobby(props) {
       });
 
       if(redirection ){
-          history.push("/game?lobby="+lobby, {userName: userName, rounds: rounds, players: players, difficulty:difficulty});
+          history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
       }
 
     }, [players, redirection]);
@@ -149,7 +154,7 @@ function Lobby(props) {
                     <Form className="text-left">
                         <Form.Label><b>Rounds</b></Form.Label>
                         <Form.Group>
-                            <Form.Control as="select" onChange={event => setRounds(event.target.value)}>
+                            <Form.Control as="select" onChange={event => setRounds(event.target.value)} disabled={buttonDisabled}>
                                 <option>10</option>
                                 <option>20</option>
                                 <option>30</option>
@@ -167,9 +172,9 @@ function Lobby(props) {
                 <ListGroupItem className="text-left">
                     <b> Difficulty </b>
                     <ListGroup horizontal>
-                        <ListGroup.Item><Button variant={difficulty == 1 ? "success" : "outline-success" } value="1" onClick={buttonClick}>Easy</Button></ListGroup.Item>
-                        <ListGroup.Item><Button variant={difficulty == 2 ? "warning" : "outline-warning" } value="2" onClick={buttonClick}>Medium</Button></ListGroup.Item>
-                        <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } value="3" onClick={buttonClick}>Hard</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 1 ? "success" : "outline-success" } value="1" onClick={buttonClick} disabled={buttonDisabled}>Easy</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 2 ? "warning" : "outline-warning" } value="2" onClick={buttonClick} disabled={buttonDisabled}>Medium</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } value="3" onClick={buttonClick} disabled={buttonDisabled}>Hard</Button></ListGroup.Item>
                         {/* <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } onClick={event => setDifficulty("3")}>Hard</Button></ListGroup.Item> */}
                     </ListGroup>
                 </ListGroupItem>

@@ -46,7 +46,8 @@ function Game(props) {
   const [copySuccess, setCopySuccess] = useState("");
 
   // 
-  const [rounds, setRounds] = useState("");
+  const [totalRounds, setTotalRounds] = useState("10");
+  const [rounds, setRounds] = useState(1);
   const [roundsLeft, setRoundsLeft] = useState("");
   const [gameWinner, setGameWinner] = useState("");
   //let itemsIcons = itemsIcons_all.slice(0, 200);
@@ -55,6 +56,11 @@ function Game(props) {
   const [msgs, setMsg] = useState("");
   const [allMsg, setAllMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
+
+  // 
+  const [countdown, setCountdown] = useState("3");
+
+
 
   useEffect(() => {}, [success]);
 
@@ -67,12 +73,19 @@ function Game(props) {
   }, [msgs]);
 
   useEffect(() => {
+    if(countdown){
+    console.log("useeffect countdown", countdown)
+    }
+  }, [countdown]);
+
+  useEffect(() => {
     if(winner)
     {
-      if(winner.score > rounds/players.length){
+      if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
       }else{
-        setRoundsLeft(roundsLeft - 1)
+        setRoundsLeft(roundsLeft - 1);
+        if(rounds<=totalRounds){setRounds(rounds + 1)};
       }  
     }
   }, [winner]);
@@ -83,9 +96,9 @@ function Game(props) {
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
-    const rounds = props.location.state.rounds;
-    setRounds(props.location.state.rounds);
-    setRoundsLeft(props.location.state.rounds);
+    const totalRounds = props.location.state.rounds;
+    setTotalRounds(props.location.state.totalRounds);
+    setRoundsLeft(props.location.state.totalRounds);
 
     const difficulty = props.location.state.difficulty;
     
@@ -209,8 +222,9 @@ function Game(props) {
           lobby={lobby}
           setRoundsLeft={setRoundsLeft}
           roundsLeft={roundsLeft}
-          rounds={rounds}
+          totalRounds={totalRounds}
           gameWinner={gameWinner}
+          setCountdown={setCountdown}
         />
       </div>
       <div className="selections block">
@@ -229,9 +243,12 @@ function Game(props) {
           setLobby={setLobby}
           winner={winner}
           setWinner={setWinner}
-          rounds={rounds}
+          totalRounds={totalRounds}
           roundsLeft={roundsLeft}
+          rounds={rounds}
           itemsIcons={items}
+          countdown={countdown}
+          setCountdown={setCountdown}
         />
         <Players
           players={players}
@@ -240,7 +257,7 @@ function Game(props) {
           winner={winner}
           setPlayers={setPlayers}
           gameWinner={gameWinner}
-          rounds={rounds}
+          totalRounds={totalRounds}
           userMsg={userMsg}
           setUserMsg={setUserMsg}
           userName={userName}
@@ -318,7 +335,12 @@ function Item(props) {
     lobby,
     setWinner,
     winner,
-    itemsIcons
+    itemsIcons,
+    countdown,
+    totalRounds,
+    roundsLeft,
+    rounds,
+    setCountdown
   } = props;
 
   useEffect(() => {
@@ -337,7 +359,6 @@ function Item(props) {
         array[currentIndex] = array[randomIndex];
         array[randomIndex] = temporaryValue;
       }
-
       setItems(array);
       setRefreshButtonDisabled(true);
     });
@@ -351,6 +372,7 @@ function Item(props) {
     });
 
     socket.on("onRefreshItem", function(data) {
+      console.log("onRefreshItem")
       setWinner("");
       setSuccess(false);
       setButtonDisabled(false);
@@ -362,17 +384,29 @@ function Item(props) {
 
   }, [
     items,
-    setItems,
-    setRandomItem,
-    setSuccess,
-    setButtonDisabled,
-    setRefreshButtonDisabled,
-    setWinner
+    // setItems,
+    // setRandomItem,
+    // setSuccess,
+    // setButtonDisabled,
+    // setRefreshButtonDisabled,
+    // setWinner
   ]);
 
   useEffect(() => {
-    if(success){ refresh_image();}
+    if(success){
+      // console.log("test countdown", countdown)
+      // console.log("success", success)
+      refresh_image();}
   }, [success]);
+
+  useEffect(() => {
+    console.log("block")
+    countdown >= 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
+    if(countdown == 0){
+      console.log("test countdown", countdown)
+      refresh_image();
+    }
+  }, [countdown]);
 
 
   const random = () => {
@@ -389,6 +423,7 @@ function Item(props) {
   };
 
   const refresh_image = () => {
+    console.log("refresh_image")
     setSuccess(false);
     setRefreshButtonDisabled(true);
     const itemId = Math.floor(Math.random() * itemsIcons.length);
@@ -402,14 +437,25 @@ function Item(props) {
     <div>
 
       <div className="text-center">
-        <h5>{props.roundsLeft}/{props.rounds} Rounds</h5>
+        <h5>{rounds}/{totalRounds} Rounds</h5>
       </div>
-
-      <img
+      {countdown < 0 ? (
+        <img
         className={!success ? "bigIcon neutral" : "bigIcon correct"}
         src={randomItem ? randomItem : StartIcon}
         alt={randomItem}
       />
+      ): (
+      <div className="bigIcon neutral countdownDiv">
+        {countdown == 0 ? "Start" : countdown}
+      </div>)}
+      {/* <img
+        className={!success ? "bigIcon neutral" : "bigIcon correct"}
+        src={randomItem ? randomItem : StartIcon}
+        alt={randomItem}
+      />
+      <div className="bigIcon neutral">
+      </div> */}
       <div>
         <button
           className={buttonDisabled ? "disabled block" : "button block"}
@@ -433,7 +479,7 @@ function Item(props) {
 }
 
 function Players(props) {
-  const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, rounds, setUserMsg, userMsg, userName, allMsg } = props;
+  const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, totalRounds, setUserMsg, userMsg, userName, allMsg } = props;
 
   useEffect(() => {
     socket.emit("getPlayers", { room: lobby});
@@ -442,9 +488,10 @@ function Players(props) {
     });
   }, [lobby]);
 
-  useEffect(() => {
-  }, []);
 
+  const anotherGameBtn = () => {
+    console.log("Another Game", players)
+  }  
 
   function handleChange(e) {
     setUserMsg(e.target.value);
@@ -461,8 +508,17 @@ function Players(props) {
     <>
     <div className="players">
       {roundsLeft != 0 && !gameWinner && success && <p>{winner.name} won the round</p>}
-      { gameWinner && <p>{gameWinner.name} won the game</p>}
-      {roundsLeft == 0 && winner.score == rounds/2 && <p>Match Draw</p>}
+      {/* { gameWinner && <p>{gameWinner.name} won the game</p>} */}
+      { gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p>
+        <Button
+          variant="success"
+          onClick={anotherGameBtn}
+        >
+          Another Game
+        </Button>
+      </div>
+      }
+      {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
         <div key={index} className="player">
           <p>{player.name}</p> <p className="score">Score: {player.score}</p>
@@ -542,8 +598,9 @@ function Boardgame(props) {
     setWinner,
     setRoundsLeft, 
     roundsLeft,
-    rounds,
-    gameWinner
+    totalRounds,
+    gameWinner,
+    setCountdown
   } = props;
 
   useEffect(() => {
@@ -566,6 +623,7 @@ function Boardgame(props) {
 
   const endMatch = item => {
     console.log("Match end");
+    setCountdown("3")
   }  
 
   const score = item => {
