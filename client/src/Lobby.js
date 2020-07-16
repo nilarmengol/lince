@@ -48,6 +48,7 @@ function Lobby(props) {
     const [difficulty, setDifficulty] = useState("3");
     const [difficulty_err, setDifficulty_err] = useState("");
     // 
+    const [flag, setFlag] = useState("");
 
     function handlePlayClick() {
       //history.push("/game?lobby="+lobby, {userName: userName});
@@ -61,7 +62,7 @@ function Lobby(props) {
 
   
     useEffect(() => {}, [success]);
-  
+
     useEffect(() => {
       if(props.location.state.userName){
       setUsername(props.location.state.userName);
@@ -96,13 +97,15 @@ function Lobby(props) {
         //setPlayers([...players, player]);
         setPlayers(data.allPlayers);
         setAdminName(data.allPlayers[0].name)
-        if(data.currentPlayer.name == data.allPlayers[0].name){
+        if(data.currentPlayer.id == data.allPlayers[0].id){
           setButtonDisabled(false)
         }
+
         // localstorage
         if(localStorage.getItem('userInfo') == null){
           localStorage.setItem('userInfo', data.currentPlayer);
         }
+        
 
       });
   
@@ -113,6 +116,14 @@ function Lobby(props) {
 
       socket.on("startGameRes", function(data) {
         setRedirection(true);
+      });
+
+      socket.on("onGetLobbyValues", function(data){
+        console.log("ontest2", data);
+        if(data != null){
+          setRounds(data.rounds);
+          setDifficulty(data.difficulty)
+        }
       });
 
       if(redirection ){
@@ -129,15 +140,47 @@ function Lobby(props) {
             let queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             let lobbyParam = urlParams.get("lobby");
+            // 
+            socket.emit("getPlayers", { room: lobbyParam});
+            socket.on("onGetPlayers", function(data) {
+            setPlayers(data.players);
+              //console.log("test players", data.players);
+
+            });
+            //console.log("joined players", players);
+            // 
             socket.emit("joinGame", { room: lobbyParam, name: props.location.state.userName });
             setUrlPath(props.location.state.url);
             setPlayerJoined(true);
+            setFlag(true);
         }
+        
+        socket.on("setLobbyValues", function(data){
+          console.log("setLobbyValues", data)
+          setRounds(data.rounds);
+          setDifficulty(data.difficulty)
+        });
     }, []);
 
     const buttonClick = (e) => {
       setDifficulty(e.target.value);
     };
+
+    useEffect(() => {
+      console.log("difficulty", difficulty)
+      console.log("rounds", rounds)
+      if(flag)
+      {
+        socket.emit("getLobbyValues", {room: lobby})
+      }else{
+        socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
+      }
+      // socket.on("setLobbyValues", function(data){
+      //   console.log("setLobbyValues", data)
+      //   setRounds(data.rounds);
+      //   setDifficulty(data.difficulty)
+      // });
+    }, [difficulty, rounds, flag]);
 
     return (
     <Container className="p-3" >
@@ -155,16 +198,16 @@ function Lobby(props) {
                         <Form.Label><b>Rounds</b></Form.Label>
                         <Form.Group>
                             <Form.Control as="select" onChange={event => setRounds(event.target.value)} disabled={buttonDisabled}>
-                                <option>10</option>
-                                <option>20</option>
-                                <option>30</option>
-                                <option>40</option>
-                                <option>50</option>
-                                <option>60</option>
-                                <option>70</option>
-                                <option>80</option>
-                                <option>90</option>
-                                <option>100</option>
+                                <option selected={rounds == 10}>10</option>
+                                <option selected={rounds == 20}>20</option>
+                                <option selected={rounds == 30}>30</option>
+                                <option selected={rounds == 40}>40</option>
+                                <option selected={rounds == 50}>50</option>
+                                <option selected={rounds == 60}>60</option>
+                                <option selected={rounds == 70}>70</option>
+                                <option selected={rounds == 80}>80</option>
+                                <option selected={rounds == 90}>90</option>
+                                <option selected={rounds == 100}>100</option>
                             </Form.Control>
                         </Form.Group>
                     </Form>

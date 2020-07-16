@@ -179,6 +179,7 @@ var ioEvents = function(IO) {
             }
             gameData[roomId] = {};
             gameData[roomId].players = new Array();
+            // gameData[roomId].lobbyValues = new Array();
             gameData[roomId].players.push({
                 name: data.name,
                 id: socket.id,
@@ -229,6 +230,43 @@ var ioEvents = function(IO) {
          */
         socket.on('startGame', function (data) {
             IO.in(data.room).emit('startGameRes', {room :data.room});
+        });
+
+        socket.on('LobbyValues', function (data) {
+            // gameData[data.room].LobbyValues.push({
+            //     difficulty: data.difficulty,
+            //     rounds: data.rounds
+            // });
+            if(gameData[data.room] != undefined && data.room){
+                console.log("room",data.room)
+                console.log("test1", gameData[data.room])
+                gameData[data.room].lobbyValues = new Array();
+                if(gameData[data.room].lobbyValues != undefined){
+                    // gameData[data.room].lobbyValues.push({
+                    //     difficulty: data.difficulty,
+                    //     rounds: data.rounds
+                    // });
+                    gameData[data.room].lobbyValues = {
+                        difficulty: data.difficulty,
+                        rounds: data.rounds
+                    };
+                }
+                
+                IO.in(data.room).emit('setLobbyValues', data);
+            }
+            
+        });
+
+        socket.on('getLobbyValues', function (data) {
+            console.log("test")
+            console.log("testgameData", gameData)
+            console.log("test data.room",data.room)
+            if(gameData[data.room] != undefined && data.room){
+                console.log("room",data.room)
+                console.log("test2", gameData[data.room])      
+                IO.in(data.room).emit('onGetLobbyValues', gameData[data.room].lobbyValues);
+            }
+            
         });
 
         socket.on('groupMsg', function (data) {
