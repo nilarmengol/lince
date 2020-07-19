@@ -55,6 +55,11 @@ function App() {
   const [lobby, setLobby] = useState("");
   const [players, setPlayers] = useState([]);
   const [allPlayers, setAllPlayers] = useState("");
+
+  // 
+  const [roomLength, setRoomLength] = useState("");
+  const [lobbyFullErr, setLobbyFullErr] = useState("");
+
  
 
   const handleSubmit = (event) => {
@@ -103,10 +108,28 @@ function App() {
       }else{
         // join game
         let queryString = window.location.search;
-        history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
+        const urlParams = new URLSearchParams(queryString);
+        const lobbyValue = urlParams.get("lobby");
+        socket.emit("getRoomDet", { room: lobbyValue});
+        socket.on("roomDet", function(data){
+          setRoomLength(data.length);
+        });
+        //history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
       }
     } 
   };
+
+  useEffect(() => {
+    if(roomLength != ""){
+      if(roomLength < 8 && userName){
+        let url = window.location.href;
+        let queryString = window.location.search;
+        history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
+      }else{
+      setLobbyFullErr("No space in lobby!!")
+      }
+    }
+  }, [roomLength]);
 
   return (
     
@@ -165,6 +188,9 @@ function App() {
                       <Button variant="info" block  type="submit" onClick={() => setNextPage('/lobby')}>
                         Join Room
                       </Button>
+                      {lobbyFullErr && <div class="alert alert-warning mt-2">  
+                           {lobbyFullErr}  
+                      </div> }
                       </ListGroupItem>
                     </>
                   ) : (

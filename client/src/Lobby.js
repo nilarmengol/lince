@@ -28,8 +28,6 @@ function Lobby(props) {
     const socket = io(ENDPOINT);
     const [urlPath, setUrlPath] = useState("");
     const history = useHistory();
-
-    // 
     const [randomItem, setRandomItem] = useState("");
     const [success, setSuccess] = useState(false);
     const [userName, setUsername] = useState("");
@@ -42,13 +40,13 @@ function Lobby(props) {
     const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
     const [copySuccess, setCopySuccess] = useState("");
     const [redirection, setRedirection] = useState(false);
-
     // 
     const [rounds, setRounds] = useState("10");
     const [difficulty, setDifficulty] = useState("3");
     const [difficulty_err, setDifficulty_err] = useState("");
-    // 
     const [flag, setFlag] = useState("");
+    const [minPlayersErr, setMinPlayersErr] = useState("");
+
 
     function handlePlayClick() {
       //history.push("/game?lobby="+lobby, {userName: userName});
@@ -114,20 +112,28 @@ function Lobby(props) {
         setPlayers(filteredArray);
       });
 
+      socket.on("removePlayer", function(data) {
+        let filteredArray = players.filter(item => item.id !== data.id);
+        setPlayers(filteredArray);
+      });
+
       socket.on("startGameRes", function(data) {
-        setRedirection(true);
+        if(data.room && data.name && data.err == null){
+          setRedirection(true)
+        }else{
+          setMinPlayersErr(data.err);
+        }
       });
 
       socket.on("onGetLobbyValues", function(data){
-        console.log("ontest2", data);
         if(data != null){
           setRounds(data.rounds);
           setDifficulty(data.difficulty)
         }
       });
 
-      if(redirection ){
-          history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
+      if(redirection == true ){
+        history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
       }
 
     }, [players, redirection]);
@@ -141,14 +147,6 @@ function Lobby(props) {
             const urlParams = new URLSearchParams(queryString);
             let lobbyParam = urlParams.get("lobby");
             // 
-            socket.emit("getPlayers", { room: lobbyParam});
-            socket.on("onGetPlayers", function(data) {
-            setPlayers(data.players);
-              //console.log("test players", data.players);
-
-            });
-            //console.log("joined players", players);
-            // 
             socket.emit("joinGame", { room: lobbyParam, name: props.location.state.userName });
             setUrlPath(props.location.state.url);
             setPlayerJoined(true);
@@ -156,7 +154,6 @@ function Lobby(props) {
         }
         
         socket.on("setLobbyValues", function(data){
-          console.log("setLobbyValues", data)
           setRounds(data.rounds);
           setDifficulty(data.difficulty)
         });
@@ -167,19 +164,11 @@ function Lobby(props) {
     };
 
     useEffect(() => {
-      console.log("difficulty", difficulty)
-      console.log("rounds", rounds)
-      if(flag)
-      {
+      if(flag){
         socket.emit("getLobbyValues", {room: lobby})
       }else{
         socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
       }
-      // socket.on("setLobbyValues", function(data){
-      //   console.log("setLobbyValues", data)
-      //   setRounds(data.rounds);
-      //   setDifficulty(data.difficulty)
-      // });
     }, [difficulty, rounds, flag]);
 
     return (
@@ -225,6 +214,9 @@ function Lobby(props) {
                 <Button variant="success" size="lg" block onClick={handlePlayClick} disabled={buttonDisabled}>
                   Start Game!
                 </Button>
+                {minPlayersErr && <div class="alert alert-warning mt-2">  
+                    <strong>Oops!</strong> {minPlayersErr}  
+                </div> }
                 </ListGroupItem>
                 <ListGroupItem>
                 {urlPath ? (

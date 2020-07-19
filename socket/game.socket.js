@@ -228,8 +228,18 @@ var ioEvents = function(IO) {
              /**
          * Create a new game room. 
          */
+        socket.on('getRoomDet', function (data) {
+            var length = IO.adapter.rooms[data.room].length;
+            socket.emit('roomDet', {length:length });
+        });
+
         socket.on('startGame', function (data) {
-            IO.in(data.room).emit('startGameRes', {room :data.room});
+            var count = IO.adapter.rooms[data.room].length;
+            if(count >= 2){
+                IO.in(data.room).emit('startGameRes', {room :data.room, name:data.name, err: null});
+            }else{
+                IO.in(data.room).emit('startGameRes', {err : "Minimum 2 player need to start game"});
+            }
         });
 
         socket.on('LobbyValues', function (data) {
@@ -238,14 +248,8 @@ var ioEvents = function(IO) {
             //     rounds: data.rounds
             // });
             if(gameData[data.room] != undefined && data.room){
-                console.log("room",data.room)
-                console.log("test1", gameData[data.room])
                 gameData[data.room].lobbyValues = new Array();
                 if(gameData[data.room].lobbyValues != undefined){
-                    // gameData[data.room].lobbyValues.push({
-                    //     difficulty: data.difficulty,
-                    //     rounds: data.rounds
-                    // });
                     gameData[data.room].lobbyValues = {
                         difficulty: data.difficulty,
                         rounds: data.rounds
@@ -258,12 +262,7 @@ var ioEvents = function(IO) {
         });
 
         socket.on('getLobbyValues', function (data) {
-            console.log("test")
-            console.log("testgameData", gameData)
-            console.log("test data.room",data.room)
-            if(gameData[data.room] != undefined && data.room){
-                console.log("room",data.room)
-                console.log("test2", gameData[data.room])      
+            if(gameData[data.room] != undefined && data.room){  
                 IO.in(data.room).emit('onGetLobbyValues', gameData[data.room].lobbyValues);
             }
             

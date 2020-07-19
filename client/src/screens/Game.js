@@ -73,12 +73,6 @@ function Game(props) {
   }, [msgs]);
 
   useEffect(() => {
-    if(countdown){
-    console.log("useeffect countdown", countdown)
-    }
-  }, [countdown]);
-
-  useEffect(() => {
     if(winner)
     {
       if(winner.score > totalRounds/players.length){
@@ -105,22 +99,18 @@ function Game(props) {
     let itemsIcons = "";
     switch (difficulty) {
       case '1':
-        console.log("case 1");
         itemsIcons = itemsIcons_all.slice(0, 200);
         setItems(itemsIcons_all.slice(0, 200));
         break;
       case '2':
-        console.log("case 2");
         itemsIcons = itemsIcons_all.slice(0, 300);
         setItems(itemsIcons_all.slice(0, 300));
         break;
       case '3':
-        console.log("case 3");
         itemsIcons = itemsIcons_all.slice(0, 500);
         setItems(itemsIcons_all.slice(0, 500));
         break;
       default:
-        console.log("case default");
         itemsIcons = itemsIcons_all.slice(0, 400);
         setItems(itemsIcons_all.slice(0, 400));
         break;
@@ -372,7 +362,6 @@ function Item(props) {
     });
 
     socket.on("onRefreshItem", function(data) {
-      console.log("onRefreshItem")
       setWinner("");
       setSuccess(false);
       setButtonDisabled(false);
@@ -394,16 +383,12 @@ function Item(props) {
 
   useEffect(() => {
     if(success){
-      // console.log("test countdown", countdown)
-      // console.log("success", success)
       refresh_image();}
   }, [success]);
 
   useEffect(() => {
-    console.log("block")
     countdown >= 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
     if(countdown == 0){
-      console.log("test countdown", countdown)
       refresh_image();
     }
   }, [countdown]);
@@ -423,7 +408,6 @@ function Item(props) {
   };
 
   const refresh_image = () => {
-    console.log("refresh_image")
     setSuccess(false);
     setRefreshButtonDisabled(true);
     const itemId = Math.floor(Math.random() * itemsIcons.length);
@@ -514,7 +498,7 @@ function Players(props) {
           variant="success"
           onClick={anotherGameBtn}
         >
-          Another Game
+          Another Game?
         </Button>
       </div>
       }
@@ -622,24 +606,11 @@ function Boardgame(props) {
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
   const endMatch = item => {
-    console.log("Match end");
     setCountdown("3")
   }  
 
   const score = item => {
     if (item === randomItem){
-      if (!winner) {
-        let playersCopy = [...players];
-        playersCopy.forEach(function(item, i) {
-          if (item.name === userName) {
-            socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            // socket.on("onUpdateBoard", function(data) {
-            // });
-          }
-        });
-      }
-    } else {
-      console.log("wrong");
       //if (!winner) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
@@ -649,6 +620,18 @@ function Boardgame(props) {
             // });
           }
         });
+      //}
+    } else {
+      console.log("wrong");
+      //if (!winner) {
+        // let playersCopy = [...players];
+        // playersCopy.forEach(function(item, i) {
+        //   if (item.name === userName) {
+        //     socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
+        //     // socket.on("onUpdateBoard", function(data) {
+        //     // });
+        //   }
+        // });
       //}
     }
   };
