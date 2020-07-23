@@ -265,7 +265,17 @@ var ioEvents = function(IO) {
             if(gameData[data.room] != undefined && data.room){  
                 IO.in(data.room).emit('onGetLobbyValues', gameData[data.room].lobbyValues);
             }
-            
+        });
+
+
+        socket.on('anotherGame', function (data) {
+            let max = data.players.reduce(function (prev, current) {
+                return (prev.score > current.score) ? prev : current
+             });
+            //console.log("max", max) 
+            if(gameData[data.room] != undefined && data.room){ 
+                //IO.in(data.room).emit('onGetLobbyValues', gameData[data.room].lobbyValues);
+            }
         });
 
         socket.on('groupMsg', function (data) {
@@ -279,6 +289,18 @@ var ioEvents = function(IO) {
         socket.on('updateBoard', function (data) {
             data.winner.score = data.winner.score +1;
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
+
+            if(gameData[data.room] != undefined && data.room){ 
+                let playersCopy = gameData[data.room].players;
+                playersCopy.forEach(function(item, i) {
+                    if (item.id === data.winner.id) {
+                    playersCopy[i].score = data.winner.score;
+                    }
+                });
+                gameData[data.room].players = playersCopy;
+            }
+
+
         });
 
         socket.on('getPlayers', function (data) {

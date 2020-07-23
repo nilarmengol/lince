@@ -90,9 +90,11 @@ function Game(props) {
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
-    const totalRounds = props.location.state.rounds;
-    setTotalRounds(props.location.state.totalRounds);
-    setRoundsLeft(props.location.state.totalRounds);
+    // const totalRounds = props.location.state.rounds;
+    if(props.location.state.totalRounds != undefined){
+      setTotalRounds(props.location.state.totalRounds);
+      setRoundsLeft(props.location.state.totalRounds);
+    }
 
     const difficulty = props.location.state.difficulty;
     
@@ -132,6 +134,7 @@ function Game(props) {
 
   useEffect(() => {
     setUsername(props.location.state.userName);
+    console.log("game",props.location.state.userName)
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
@@ -475,6 +478,7 @@ function Players(props) {
 
   const anotherGameBtn = () => {
     console.log("Another Game", players)
+    socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
   }  
 
   function handleChange(e) {
@@ -510,7 +514,7 @@ function Players(props) {
       ))}
     </div>
 
-    <Card fluid="true" className="mt-3">
+    {players.length > 0 && <Card fluid="true" className="mt-3">
     <Card.Header className="text-left"><h5>Chat</h5></Card.Header>
     <Card.Body>
       <div className="chatWindow">
@@ -557,7 +561,7 @@ function Players(props) {
         </div>
         </div>
     </Card.Body>
-    </Card>
+    </Card>}
 
 
    </>             
@@ -623,16 +627,16 @@ function Boardgame(props) {
       //}
     } else {
       console.log("wrong");
-      //if (!winner) {
-        // let playersCopy = [...players];
-        // playersCopy.forEach(function(item, i) {
-        //   if (item.name === userName) {
-        //     socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-        //     // socket.on("onUpdateBoard", function(data) {
-        //     // });
-        //   }
-        // });
-      //}
+      if (!winner) {
+        let playersCopy = [...players];
+        playersCopy.forEach(function(item, i) {
+          if (item.name === userName) {
+            socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
+            // socket.on("onUpdateBoard", function(data) {
+            // });
+          }
+        });
+      }
     }
   };
 
