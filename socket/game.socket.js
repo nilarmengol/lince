@@ -269,13 +269,37 @@ var ioEvents = function(IO) {
 
 
         socket.on('anotherGame', function (data) {
+            console.log("data", data) 
+
             let max = data.players.reduce(function (prev, current) {
                 return (prev.score > current.score) ? prev : current
              });
-            //console.log("max", max) 
+            console.log("max", max) 
             if(gameData[data.room] != undefined && data.room){ 
-                //IO.in(data.room).emit('onGetLobbyValues', gameData[data.room].lobbyValues);
+                
+                // rank
+                let playersCopy = data.players;
+                playersCopy.forEach(function(item, i){
+                    if(playersCopy[i].rank == undefined || playersCopy[i].rank==""){
+                        playersCopy[i].rank = 0;
+                    }
+                    if(item.id == max.id){
+                        console.log("playersCopy[i].rank",playersCopy[i].rank);
+                        if(playersCopy[i].rank == undefined || playersCopy[i].rank==""){
+                            playersCopy[i].rank = playersCopy[i].rank + 1;
+                        }
+                    } 
+                    playersCopy[i].score = 0;
+                });
+                // rank
+                console.log("playersCopy", playersCopy);
+                gameData[data.room].players = playersCopy;
+
+                IO.in(data.room).emit('onAnotherGame', gameData[data.room].players);
             }
+
+            
+
         });
 
         socket.on('groupMsg', function (data) {
@@ -287,6 +311,7 @@ var ioEvents = function(IO) {
         });
 
         socket.on('updateBoard', function (data) {
+            console.log("updateBoard",data)
             data.winner.score = data.winner.score +1;
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
 
@@ -307,7 +332,9 @@ var ioEvents = function(IO) {
             var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
                 socket.join(data.room);
+                console.log("getPlayers", gameData[data.room].players)
                 socket.emit('onGetPlayers', { players: gameData[data.room].players});              
+                //IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players});              
             } else {
                 socket.emit('err', {
                     message: 'Sorry, no player in the room!'

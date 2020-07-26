@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 import queryString_test from 'query-string'
 import "../styles/game.css";
 import { itemsIcons_all } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
+
+// 
+import 'font-awesome/css/font-awesome.min.css';
 
 // 
 import '../lobby_chat.css';
@@ -16,6 +20,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
 
 
 //Deploy
@@ -44,6 +49,7 @@ function Game(props) {
   const [buttonDisabled, setButtonDisabled] = useState("");
   const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
+  const history = useHistory();
 
   // 
   const [totalRounds, setTotalRounds] = useState("10");
@@ -60,6 +66,13 @@ function Game(props) {
   // 
   const [countdown, setCountdown] = useState("3");
 
+  // 
+  const [modalShow, setModalShow] = useState(false);
+  const [adminName, setAdminName] = useState("");
+  const [adminButtonDisabled, setAdminButtonDisabled] = useState(true);
+  const [difficulty, setDifficulty] = useState("");
+
+
 
 
   useEffect(() => {}, [success]);
@@ -75,6 +88,7 @@ function Game(props) {
   useEffect(() => {
     if(winner)
     {
+      console.log("winner", winner);
       if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
       }else{
@@ -83,6 +97,18 @@ function Game(props) {
       }  
     }
   }, [winner]);
+
+
+  useEffect(() => {
+    if(gameWinner != ""){
+      setModalShow(true);
+    }
+  }, [gameWinner]);
+
+
+  useEffect(() => {
+    console.log("adminButtonDisabled",adminButtonDisabled);
+  }, [adminButtonDisabled]);
   
 
   useEffect(() => {
@@ -95,6 +121,10 @@ function Game(props) {
       setTotalRounds(props.location.state.totalRounds);
       setRoundsLeft(props.location.state.totalRounds);
     }
+    if(props.location.state.difficulty != undefined && props.location.state.difficulty !==""){
+      setDifficulty(props.location.state.difficulty);
+    }
+    
 
     const difficulty = props.location.state.difficulty;
     
@@ -163,34 +193,62 @@ function Game(props) {
       player.score = 0;
       //setPlayers([...players, player]);
       setPlayers(data.allPlayers);
+      setAdminName(data.allPlayers[0].name)
+      if(data.currentPlayer.id == data.allPlayers[0].id){
+        setAdminButtonDisabled(false)
+      }
     });
 
     socket.on("onGetPlayers", function(data) {
       setPlayers(data.players);
+      //setPlayers(data.players);
+      
     });
 
     socket.on("removePlayer", function(data) {
       let filteredArray = players.filter(item => item.id !== data.id);
       setPlayers(filteredArray);
     });
+
+    let user;
+    if(localStorage.getItem('userInfo') != null){
+      user = JSON.parse(localStorage.getItem('userInfo'));
+      console.log("user", user);
+    }
+    if(players.length > 0){
+      console.log("player cehck", players)
+      setAdminName(players[0].name)
+      if(user.id == players[0].id){
+        setAdminButtonDisabled(false)
+      }
+    }
+    
+
   }, [players]);
+
+  // useEffect(() => {
+  //   socket.on("onGetPlayers", function(data) {
+  //     setPlayers(data.players);
+  //     console.log("onGetPlayers", data.players)
+  //   });
+  // }, [lobby]);
 
 //}, [players, setPlayers, setLobby, setPlayerJoined, setUrlPath]);
 
-  const newGame = () => {
-    socket.emit("createGame", { name: userName });
-  };
+  // const newGame = () => {
+  //   socket.emit("createGame", { name: userName });
+  // };
 
-  const joinGame = () => {
-    //const queryString = window.location.search;
-    let queryString = window.location.search;
-    queryString = queryString.concat(window.location.hash);
-    const urlParams = new URLSearchParams(queryString);
-    let lobbyParam = urlParams.get("lobby");
-    socket.emit("joinGame", { room: lobbyParam, name: userName });
-    //setPlayerJoined(true);
+  // const joinGame = () => {
+  //   //const queryString = window.location.search;
+  //   let queryString = window.location.search;
+  //   queryString = queryString.concat(window.location.hash);
+  //   const urlParams = new URLSearchParams(queryString);
+  //   let lobbyParam = urlParams.get("lobby");
+  //   socket.emit("joinGame", { room: lobbyParam, name: userName });
+  //   //setPlayerJoined(true);
 
-  };
+  // };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(urlPath);
@@ -218,6 +276,7 @@ function Game(props) {
           totalRounds={totalRounds}
           gameWinner={gameWinner}
           setCountdown={setCountdown}
+          countdown={countdown}
         />
       </div>
       <div className="selections block">
@@ -242,6 +301,11 @@ function Game(props) {
           itemsIcons={items}
           countdown={countdown}
           setCountdown={setCountdown}
+          gameWinner={gameWinner}
+          difficulty={difficulty}
+          players={players}
+          userName={userName}
+          history={history}
         />
         <Players
           players={players}
@@ -256,8 +320,27 @@ function Game(props) {
           userName={userName}
           allMsg={allMsg}
           roundsLeft={roundsLeft}
+          rounds={rounds}
 
         />
+
+        <MyVerticallyCenteredModal
+          show={modalShow}
+          onHide={() => setModalShow(false)}
+          gamewinner={gameWinner}
+          lobby={lobby}
+          players={players}
+          setplayers={setPlayers}
+          setroundsleft={setRoundsLeft}
+          setrounds = {setRounds}
+          totalrounds ={totalRounds}
+          setmodalshow={setModalShow}
+          setgamewinner={setGameWinner}
+          buttondisabled={adminButtonDisabled}
+          setwinner={setWinner}
+          setsuccess={setSuccess}
+        />
+
         <br />
         {urlPath ? (
           <span>
@@ -271,7 +354,7 @@ function Game(props) {
           <span></span>
         )}
 
-        {playerJoined ? (
+        {/* {playerJoined ? (
           <div></div>
         ) : (
           <div className="container">
@@ -307,7 +390,7 @@ function Game(props) {
               </span>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
@@ -333,7 +416,14 @@ function Item(props) {
     totalRounds,
     roundsLeft,
     rounds,
-    setCountdown
+    setCountdown,
+    gameWinner,
+    history,
+    difficulty,
+    userName,
+    players
+
+
   } = props;
 
   useEffect(() => {
@@ -385,8 +475,11 @@ function Item(props) {
   ]);
 
   useEffect(() => {
-    if(success){
-      refresh_image();}
+    console.log("game winner", gameWinner)
+    if(success && gameWinner ==""){
+      //refresh_image();
+      setCountdown("3");
+    }
   }, [success]);
 
   useEffect(() => {
@@ -418,22 +511,29 @@ function Item(props) {
     socket.emit("refreshItem", { room: lobby, itemId: itemId });
   };
 
+  const backToLobby = () => {
+    history.push("/lobby?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
+  }
+
   // if(success){ refresh_image();}
 
   return (
     <div>
-
       <div className="text-center">
         <h5>{rounds}/{totalRounds} Rounds</h5>
       </div>
       {countdown < 0 ? (
         <img
-        className={!success ? "bigIcon neutral" : "bigIcon correct"}
+        //className={!success ? "bigIcon neutral" : "bigIcon correct"}
+        className={!winner ? "bigIcon neutral" : "bigIcon correct"}
         src={randomItem ? randomItem : StartIcon}
         alt={randomItem}
       />
       ): (
-      <div className="bigIcon neutral countdownDiv">
+      <div 
+      className="bigIcon neutral countdownDiv"
+      className={!winner ? "bigIcon neutral countdownDiv" : "bigIcon correct countdownDiv"}
+      >
         {countdown == 0 ? "Start" : countdown}
       </div>)}
       {/* <img
@@ -443,8 +543,8 @@ function Item(props) {
       />
       <div className="bigIcon neutral">
       </div> */}
-      <div>
-        <button
+      <div className="text-center pt-2 pb-2">
+        {/* <button
           className={buttonDisabled ? "disabled block" : "button block"}
           onClick={random}
           disabled={buttonDisabled}
@@ -459,27 +559,88 @@ function Item(props) {
           disabled={refreshButtonDisabled}
         >
           Refresh
-        </button>
+        </button> */}
+        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToLobby}><i class="fa fa-arrow-left mr-1"></i> Back to Lobby</button>
+
       </div>
     </div>
   );
 }
 
+
+function MyVerticallyCenteredModal(props) {
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess} = props;
+
+  useEffect(() => {
+    socket.on("onAnotherGame", function(data) {
+      console.log("onAnotherGame", data)
+      setplayers(data);
+      console.log("total rounds", totalrounds)
+      setrounds(1);
+      setroundsleft(totalrounds);
+      setmodalshow(false);
+      setgamewinner("");
+      setwinner("");
+      setsuccess(false);
+    });
+  }, [players])
+
+  const anotherGameBtn = () => {
+    console.log("Another Game")
+    socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gamewinner });
+    setgamewinner("");
+    setwinner("");
+    // socket.on("onGetLobbyValues", function(data) {
+    //   //console.log("onGetLobbyValues1", data)
+    //   //setPlayers(data.players);
+    // });
+  }  
+
+  return (
+    <Modal
+      {...props}
+      size="lg"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+    >
+      <Modal.Header closeButton>
+        <Modal.Title id="contained-modal-title-vcenter">
+          Match Result
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body className="textCenter">
+        {/* <h4>Centered Modal</h4> */}
+        <p>
+          <strong>{gamewinner.name}</strong> Won the game!!!
+        </p>
+      </Modal.Body>
+      <Modal.Footer>
+      {/* <Button onClick={props.onHide}>Another Game?</Button> */}
+      <Button disabled={buttondisabled} onClick={anotherGameBtn}>Another Game?</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+
 function Players(props) {
-  const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, totalRounds, setUserMsg, userMsg, userName, allMsg } = props;
+  const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, totalRounds, setUserMsg, userMsg, userName, allMsg, rounds } = props;
+
 
   useEffect(() => {
     socket.emit("getPlayers", { room: lobby});
-    socket.on("onGetPlayers", function(data) {
-      setPlayers(data.players);
-    });
+    // socket.on("onGetPlayers", function(data) {
+    //   setPlayers(data.players);
+    // });
   }, [lobby]);
 
 
-  const anotherGameBtn = () => {
-    console.log("Another Game", players)
-    socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
-  }  
+
+
+  // const anotherGameBtn = () => {
+  //   console.log("Another Game", players)
+  //   socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
+  // }  
 
   function handleChange(e) {
     setUserMsg(e.target.value);
@@ -494,16 +655,17 @@ function Players(props) {
 
   return (
     <>
+      
     <div className="players">
       {roundsLeft != 0 && !gameWinner && success && <p>{winner.name} won the round</p>}
       {/* { gameWinner && <p>{gameWinner.name} won the game</p>} */}
-      { gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p>
-        <Button
+      { rounds !== 1 && gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p>
+        {/* <Button
           variant="success"
           onClick={anotherGameBtn}
         >
           Another Game?
-        </Button>
+        </Button> */}
       </div>
       }
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
@@ -570,6 +732,8 @@ function Players(props) {
   );
 }
 
+
+
 function Boardgame(props) {
   const {
     setPlayers,
@@ -588,17 +752,21 @@ function Boardgame(props) {
     roundsLeft,
     totalRounds,
     gameWinner,
-    setCountdown
+    setCountdown, 
+    countdown
   } = props;
 
   useEffect(() => {
+    console.log("before onUpdateBoard", players)
     socket.on("onUpdateBoard", function(data) {
+      console.log("onUpdateBoard", players)
       let playersCopy = [...players];
       playersCopy.forEach(function(item, i) {
-        if (item.id === data.winner.id && !winner) {
+        //if (item.id === data.winner.id && !winner) {
+        if (item.id === data.winner.id) {
           playersCopy[i].score = data.winner.score;
           setWinner(playersCopy[i]);
-          setPlayers(playersCopy);
+          //setPlayers(playersCopy);
           setButtonDisabled(false);
           setRefreshButtonDisabled(false);
           setSuccess(true);
@@ -610,12 +778,14 @@ function Boardgame(props) {
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
   const endMatch = item => {
-    setCountdown("3")
+    console.log("end match")
+    //setCountdown("3")
   }  
 
   const score = item => {
     if (item === randomItem){
       //if (!winner) {
+      if (countdown < 0) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
@@ -624,10 +794,12 @@ function Boardgame(props) {
             // });
           }
         });
+      }  
       //}
     } else {
-      console.log("wrong");
-      if (!winner) {
+      console.log("wrong", countdown);
+      //if (!winner) {
+      if (countdown < 0) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
@@ -637,6 +809,7 @@ function Boardgame(props) {
           }
         });
       }
+      //}
     }
   };
 

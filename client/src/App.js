@@ -92,6 +92,7 @@ function App() {
   }, [players]);
 
   const createRoom = (event) => {
+    //localStorage.removeItem('userInfo');
     event.preventDefault();
     const form = event.currentTarget;
     if (form.checkValidity() === false) {

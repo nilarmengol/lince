@@ -85,6 +85,7 @@ function Lobby(props) {
         setUrlPath(url);
         setLobby(data.room);
         setPlayerJoined(true);
+        localStorage.removeItem('userInfo');
       });
   
       socket.on("addPlayer", function(data) {
@@ -100,8 +101,10 @@ function Lobby(props) {
         }
 
         // localstorage
-        if(localStorage.getItem('userInfo') == null){
-          localStorage.setItem('userInfo', data.currentPlayer);
+        if(localStorage.getItem('userInfo') === null){
+          //localStorage.setItem('userInfo', data.currentPlayer);
+          console.log("Player check", player)
+          localStorage.setItem('userInfo', JSON.stringify(player));
         }
         
 
