@@ -92,7 +92,7 @@ function App() {
   }, [players]);
 
   const createRoom = (event) => {
-    //localStorage.removeItem('userInfo');
+    localStorage.removeItem('userInfo');
     event.preventDefault();
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
@@ -105,6 +105,7 @@ function App() {
       let url = window.location.href;
       if(!lobby){
         // create game
+        localStorage.removeItem('lobby');
         history.push(nextPage, { userName: userName, id: 1, action: 'create', url:url});
       }else{
         // join game

@@ -71,6 +71,12 @@ function Lobby(props) {
       const lobbyValue = urlParams.get("lobby");
   
       if (lobbyValue) setLobby(lobbyValue);
+
+      // urlpath
+      if(urlPath == "" && localStorage.getItem('inviteUrl') != ""){
+        setUrlPath(localStorage.getItem('inviteUrl'));
+      }
+
   
       let url = window.location.href;
       //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
@@ -82,6 +88,8 @@ function Lobby(props) {
         } else {
           url += "?lobby=" + data.room;
         }
+        localStorage.removeItem('inviteUrl');
+        localStorage.setItem('inviteUrl', url);
         setUrlPath(url);
         setLobby(data.room);
         setPlayerJoined(true);
@@ -89,6 +97,7 @@ function Lobby(props) {
       });
   
       socket.on("addPlayer", function(data) {
+        console.log("add player", data);
         let player = {};
         player.name = data.currentPlayer.name;
         player.id = data.currentPlayer.id;
@@ -100,13 +109,14 @@ function Lobby(props) {
           setButtonDisabled(false)
         }
 
-        // localstorage
+        // userInfo localstorage
         if(localStorage.getItem('userInfo') === null){
-          //localStorage.setItem('userInfo', data.currentPlayer);
           console.log("Player check", player)
           localStorage.setItem('userInfo', JSON.stringify(player));
         }
-        
+        if(data.inviteUrl != undefined){
+          localStorage.setItem('inviteUrl', data.inviteUrl);
+        }
 
       });
   
@@ -135,6 +145,15 @@ function Lobby(props) {
         }
       });
 
+      socket.on("onGetPlayers", function(data) {
+        console.log("onGetPlayers lobby", data)
+          setPlayers(data.players);
+          setAdminName(data.players[0].name)
+          //setPlayers(data.players);
+        
+      });
+      
+
       if(redirection == true ){
         history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
       }
@@ -142,15 +161,15 @@ function Lobby(props) {
     }, [players, redirection]);
 
     useEffect(() => {
-        if(props.location.state.action == "create"){  
-        socket.emit("createGame", { name: props.location.state.userName });
+        if(props.location.state.action == "create" && localStorage.getItem('userInfo') === null){  
+        socket.emit("createGame", { name: props.location.state.userName});
         }
-        if(props.location.state.action == "join"){
+        if(props.location.state.action == "join" && localStorage.getItem('userInfo') === null){
             let queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             let lobbyParam = urlParams.get("lobby");
             // 
-            socket.emit("joinGame", { room: lobbyParam, name: props.location.state.userName });
+            socket.emit("joinGame", { room: lobbyParam, name: props.location.state.userName, inviteUrl: props.location.state.url });
             setUrlPath(props.location.state.url);
             setPlayerJoined(true);
             setFlag(true);
@@ -160,6 +179,8 @@ function Lobby(props) {
           setRounds(data.rounds);
           setDifficulty(data.difficulty)
         });
+
+
     }, []);
 
     const buttonClick = (e) => {
@@ -173,6 +194,12 @@ function Lobby(props) {
         socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
       }
     }, [difficulty, rounds, flag]);
+
+
+    useEffect(() => {
+        socket.emit("getPlayers", { room: lobby});
+        setPlayers([]);
+    }, [lobby]);
 
     return (
     <Container className="p-3" >

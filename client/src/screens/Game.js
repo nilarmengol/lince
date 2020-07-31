@@ -7,7 +7,7 @@ import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
 
 // 
-import 'font-awesome/css/font-awesome.min.css';
+//import 'font-awesome/css/font-awesome.min.css';
 
 // 
 import '../lobby_chat.css';
@@ -30,14 +30,7 @@ import Modal from 'react-bootstrap/Modal';
 const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
-//const itemsIcons = itemsIcons_all.slice(0, 200);
-//let itemsIcons = itemsIcons_all.slice(0, 200);
-
 function Game(props) {
-  //const ENDPOINT = "http://127.0.0.1:4001/home";
-  // socket = io(ENDPOINT);
-
-  //const [items, setItems] = useState(itemsIcons);
   const [items, setItems] = useState("");
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
@@ -50,23 +43,15 @@ function Game(props) {
   const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const history = useHistory();
-
   // 
   const [totalRounds, setTotalRounds] = useState("10");
   const [rounds, setRounds] = useState(1);
   const [roundsLeft, setRoundsLeft] = useState("");
   const [gameWinner, setGameWinner] = useState("");
-  //let itemsIcons = itemsIcons_all.slice(0, 200);
-
-  // 
   const [msgs, setMsg] = useState("");
   const [allMsg, setAllMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
-
-  // 
   const [countdown, setCountdown] = useState("3");
-
-  // 
   const [modalShow, setModalShow] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminButtonDisabled, setAdminButtonDisabled] = useState(true);
@@ -98,13 +83,11 @@ function Game(props) {
     }
   }, [winner]);
 
-
   useEffect(() => {
     if(gameWinner != ""){
       setModalShow(true);
     }
   }, [gameWinner]);
-
 
   useEffect(() => {
     console.log("adminButtonDisabled",adminButtonDisabled);
@@ -116,7 +99,6 @@ function Game(props) {
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
-    // const totalRounds = props.location.state.rounds;
     if(props.location.state.totalRounds != undefined){
       setTotalRounds(props.location.state.totalRounds);
       setRoundsLeft(props.location.state.totalRounds);
@@ -164,7 +146,6 @@ function Game(props) {
 
   useEffect(() => {
     setUsername(props.location.state.userName);
-    console.log("game",props.location.state.userName)
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
@@ -213,42 +194,15 @@ function Game(props) {
     let user;
     if(localStorage.getItem('userInfo') != null){
       user = JSON.parse(localStorage.getItem('userInfo'));
-      console.log("user", user);
     }
     if(players.length > 0){
-      console.log("player cehck", players)
       setAdminName(players[0].name)
       if(user.id == players[0].id){
         setAdminButtonDisabled(false)
       }
     }
     
-
   }, [players]);
-
-  // useEffect(() => {
-  //   socket.on("onGetPlayers", function(data) {
-  //     setPlayers(data.players);
-  //     console.log("onGetPlayers", data.players)
-  //   });
-  // }, [lobby]);
-
-//}, [players, setPlayers, setLobby, setPlayerJoined, setUrlPath]);
-
-  // const newGame = () => {
-  //   socket.emit("createGame", { name: userName });
-  // };
-
-  // const joinGame = () => {
-  //   //const queryString = window.location.search;
-  //   let queryString = window.location.search;
-  //   queryString = queryString.concat(window.location.hash);
-  //   const urlParams = new URLSearchParams(queryString);
-  //   let lobbyParam = urlParams.get("lobby");
-  //   socket.emit("joinGame", { room: lobbyParam, name: userName });
-  //   //setPlayerJoined(true);
-
-  // };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(urlPath);
@@ -353,44 +307,6 @@ function Game(props) {
         ) : (
           <span></span>
         )}
-
-        {/* {playerJoined ? (
-          <div></div>
-        ) : (
-          <div className="container">
-            {lobby ? (
-              <span>
-                <h4>Join game</h4>
-                <input
-                  type="text"
-                  name="name"
-                  id="nameJoin"
-                  placeholder="Enter your name"
-                  required
-                  onChange={event => setUsername(event.target.value)}
-                />
-                <button id="join" onClick={joinGame} className="button block">
-                  Join Game
-                </button>
-              </span>
-            ) : (
-              <span>
-                <h4>Create a new Game</h4>
-                <input
-                  type="text"
-                  name="name"
-                  id="nameNew"
-                  placeholder="Enter your name"
-                  required
-                  onChange={event => setUsername(event.target.value)}
-                />
-                <button onClick={newGame} className="button block">
-                  New Game
-                </button>
-              </span>
-            )}
-          </div>
-        )} */}
       </div>
     </div>
   );
@@ -462,20 +378,9 @@ function Item(props) {
       setRandomItem(itemsIcons[data.itemId]);
     });
 
-  //if(success){ random();}
-
-  }, [
-    items,
-    // setItems,
-    // setRandomItem,
-    // setSuccess,
-    // setButtonDisabled,
-    // setRefreshButtonDisabled,
-    // setWinner
-  ]);
+  }, [items]);
 
   useEffect(() => {
-    console.log("game winner", gameWinner)
     if(success && gameWinner ==""){
       //refresh_image();
       setCountdown("3");
@@ -489,6 +394,11 @@ function Item(props) {
     }
   }, [countdown]);
 
+  useEffect(() => {
+    if(rounds/10 == 0){
+      relocate();
+    }
+  }, [rounds]);
 
   const random = () => {
     setSuccess(false);
@@ -515,7 +425,9 @@ function Item(props) {
     history.push("/lobby?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
   }
 
-  // if(success){ refresh_image();}
+  const backToMain = () => {
+    history.push("/");
+  }
 
   return (
     <div>
@@ -536,31 +448,8 @@ function Item(props) {
       >
         {countdown == 0 ? "Start" : countdown}
       </div>)}
-      {/* <img
-        className={!success ? "bigIcon neutral" : "bigIcon correct"}
-        src={randomItem ? randomItem : StartIcon}
-        alt={randomItem}
-      />
-      <div className="bigIcon neutral">
-      </div> */}
       <div className="text-center pt-2 pb-2">
-        {/* <button
-          className={buttonDisabled ? "disabled block" : "button block"}
-          onClick={random}
-          disabled={buttonDisabled}
-        >
-          New Items
-        </button>
-        <button
-          onClick={relocate}
-          className={
-            refreshButtonDisabled ? "refreshDisabled block" : "refresh block"
-          }
-          disabled={refreshButtonDisabled}
-        >
-          Refresh
-        </button> */}
-        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToLobby}><i class="fa fa-arrow-left mr-1"></i> Back to Lobby</button>
+        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
 
       </div>
     </div>
@@ -573,9 +462,7 @@ function MyVerticallyCenteredModal(props) {
 
   useEffect(() => {
     socket.on("onAnotherGame", function(data) {
-      console.log("onAnotherGame", data)
       setplayers(data);
-      console.log("total rounds", totalrounds)
       setrounds(1);
       setroundsleft(totalrounds);
       setmodalshow(false);
@@ -586,15 +473,14 @@ function MyVerticallyCenteredModal(props) {
   }, [players])
 
   const anotherGameBtn = () => {
-    console.log("Another Game")
     socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gamewinner });
     setgamewinner("");
     setwinner("");
-    // socket.on("onGetLobbyValues", function(data) {
-    //   //console.log("onGetLobbyValues1", data)
-    //   //setPlayers(data.players);
-    // });
   }  
+
+  const leaveGameBtn = () => {
+    console.log("Leave Game")
+  } 
 
   return (
     <Modal
@@ -603,7 +489,7 @@ function MyVerticallyCenteredModal(props) {
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title id="contained-modal-title-vcenter">
           Match Result
         </Modal.Title>
@@ -616,7 +502,8 @@ function MyVerticallyCenteredModal(props) {
       </Modal.Body>
       <Modal.Footer>
       {/* <Button onClick={props.onHide}>Another Game?</Button> */}
-      <Button disabled={buttondisabled} onClick={anotherGameBtn}>Another Game?</Button>
+      <Button disabled={buttondisabled} onClick={anotherGameBtn}>Try Again</Button>
+      <Button variant="outline-danger" onClick={leaveGameBtn}>Leave Game</Button>
       </Modal.Footer>
     </Modal>
   );
@@ -629,18 +516,7 @@ function Players(props) {
 
   useEffect(() => {
     socket.emit("getPlayers", { room: lobby});
-    // socket.on("onGetPlayers", function(data) {
-    //   setPlayers(data.players);
-    // });
   }, [lobby]);
-
-
-
-
-  // const anotherGameBtn = () => {
-  //   console.log("Another Game", players)
-  //   socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
-  // }  
 
   function handleChange(e) {
     setUserMsg(e.target.value);
@@ -660,12 +536,7 @@ function Players(props) {
       {roundsLeft != 0 && !gameWinner && success && <p>{winner.name} won the round</p>}
       {/* { gameWinner && <p>{gameWinner.name} won the game</p>} */}
       { rounds !== 1 && gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p>
-        {/* <Button
-          variant="success"
-          onClick={anotherGameBtn}
-        >
-          Another Game?
-        </Button> */}
+
       </div>
       }
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
