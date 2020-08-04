@@ -20,12 +20,13 @@ import io from "socket.io-client";
 //const ENDPOINT = window.location.hostname;
 //Local
 
+const ENDPOINT = "http://127.0.0.1:4001/";
+const socket = io(ENDPOINT);
 
 function Lobby(props) {
     //const ENDPOINT = "http://127.0.0.1:4001/lobby";
-    const ENDPOINT = "http://127.0.0.1:4001/";
-    // let socket;
-    const socket = io(ENDPOINT);
+    // const ENDPOINT = "http://127.0.0.1:4001/";
+    // const socket = io(ENDPOINT);
     const [urlPath, setUrlPath] = useState("");
     const history = useHistory();
     const [randomItem, setRandomItem] = useState("");
@@ -77,6 +78,22 @@ function Lobby(props) {
         setUrlPath(localStorage.getItem('inviteUrl'));
       }
 
+
+
+
+      if(lobby == ""){
+        console.log("empty lobby", localStorage.getItem('lobby'))
+        setLobby(localStorage.getItem('lobby'));
+      }
+
+
+      // if(lobbyValue!=="" && localStorage.getItem('lobby') === null){
+      //   localStorage.setItem('lobby', lobbyValue);
+      // }
+
+      if(lobbyValue == null && localStorage.getItem('lobby') !== null){
+        setLobby(localStorage.getItem('lobby'));
+      }
   
       let url = window.location.href;
       //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
@@ -89,6 +106,7 @@ function Lobby(props) {
           url += "?lobby=" + data.room;
         }
         localStorage.removeItem('inviteUrl');
+        // console.log("url", url)
         localStorage.setItem('inviteUrl', url);
         setUrlPath(url);
         setLobby(data.room);
@@ -111,6 +129,7 @@ function Lobby(props) {
 
         // userInfo localstorage
         if(localStorage.getItem('userInfo') === null){
+          //localStorage.setItem('userInfo', data.currentPlayer);
           console.log("Player check", player)
           localStorage.setItem('userInfo', JSON.stringify(player));
         }
@@ -118,13 +137,10 @@ function Lobby(props) {
           localStorage.setItem('inviteUrl', data.inviteUrl);
         }
 
+        //localStorage.setItem('inviteUrl', data.inviteUrl);
+
       });
   
-      socket.on("removePlayer", function(data) {
-        let filteredArray = players.filter(item => item.id !== data.id);
-        setPlayers(filteredArray);
-      });
-
       socket.on("removePlayer", function(data) {
         let filteredArray = players.filter(item => item.id !== data.id);
         setPlayers(filteredArray);
@@ -145,13 +161,17 @@ function Lobby(props) {
         }
       });
 
-      socket.on("onGetPlayers", function(data) {
-        console.log("onGetPlayers lobby", data)
-          setPlayers(data.players);
-          setAdminName(data.players[0].name)
-          //setPlayers(data.players);
+      // socket.on("onGetPlayers", function(data) {
+      //   console.log("onGetPlayers lobby", data)
+      //     setPlayers(data.players);
+      //     setAdminName(data.players[0].name)
+      //     let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+      //     if(currentPlayer.id == data.players[0].id){
+      //       setButtonDisabled(false)
+      //     }
+      //     //setPlayers(data.players);
         
-      });
+      // });
       
 
       if(redirection == true ){
@@ -165,6 +185,7 @@ function Lobby(props) {
         socket.emit("createGame", { name: props.location.state.userName});
         }
         if(props.location.state.action == "join" && localStorage.getItem('userInfo') === null){
+            //localStorage.removeItem('inviteUrl');
             let queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             let lobbyParam = urlParams.get("lobby");
@@ -174,6 +195,7 @@ function Lobby(props) {
             setPlayerJoined(true);
             setFlag(true);
         }
+        
         
         socket.on("setLobbyValues", function(data){
           setRounds(data.rounds);
@@ -188,17 +210,37 @@ function Lobby(props) {
     };
 
     useEffect(() => {
-      if(flag){
-        socket.emit("getLobbyValues", {room: lobby})
-      }else{
-        socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
+      if(lobby){
+        if(flag){
+          socket.emit("getLobbyValues", {room: lobby})
+        }else{
+          socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
+        }
       }
     }, [difficulty, rounds, flag]);
 
 
     useEffect(() => {
-        socket.emit("getPlayers", { room: lobby});
-        setPlayers([]);
+      let getLobby = localStorage.getItem('lobby');
+      //if(lobby && getLobby === null){
+      if(lobby){
+        localStorage.setItem('lobby', lobby);
+      }
+      if(lobby && lobby != ""){
+        socket.emit("getPlayers_lobby", { room: lobby});
+      }
+      //setPlayers([]);
+      socket.on("onGetPlayers_lobby", function(data) {
+        console.log("onGetPlayers lobby", data)
+          setPlayers(data.players);
+          setAdminName(data.players[0].name)
+          let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+          if(currentPlayer.id == data.players[0].id){
+            setButtonDisabled(false)
+          }
+      });
+      
+
     }, [lobby]);
 
     return (

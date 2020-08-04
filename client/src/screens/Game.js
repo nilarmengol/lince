@@ -24,13 +24,15 @@ import Modal from 'react-bootstrap/Modal';
 
 
 //Deploy
-//const ENDPOINT = window.location.hostname;
-//Local
-//const ENDPOINT = "http://127.0.0.1:4001/game";
+
 const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
 function Game(props) {
+  //const ENDPOINT = "http://127.0.0.1:4001/home";
+  // socket = io(ENDPOINT);
+
+  //const [items, setItems] = useState(itemsIcons);
   const [items, setItems] = useState("");
   const [randomItem, setRandomItem] = useState("");
   const [success, setSuccess] = useState(false);
@@ -43,19 +45,30 @@ function Game(props) {
   const [refreshButtonDisabled, setRefreshButtonDisabled] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const history = useHistory();
+
   // 
   const [totalRounds, setTotalRounds] = useState("10");
   const [rounds, setRounds] = useState(1);
   const [roundsLeft, setRoundsLeft] = useState("");
   const [gameWinner, setGameWinner] = useState("");
+  //let itemsIcons = itemsIcons_all.slice(0, 200);
+
+  // 
   const [msgs, setMsg] = useState("");
   const [allMsg, setAllMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
+
+  // 
   const [countdown, setCountdown] = useState("3");
+
+  // 
   const [modalShow, setModalShow] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminButtonDisabled, setAdminButtonDisabled] = useState(true);
   const [difficulty, setDifficulty] = useState("");
+
+  // 
+  const [temp, setTemp] = useState(0);
 
 
 
@@ -74,7 +87,8 @@ function Game(props) {
     if(winner)
     {
       console.log("winner", winner);
-      if(winner.score > totalRounds/players.length){
+      //if(winner.score > totalRounds/3){
+     if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
       }else{
         setRoundsLeft(roundsLeft - 1);
@@ -83,11 +97,13 @@ function Game(props) {
     }
   }, [winner]);
 
+
   useEffect(() => {
     if(gameWinner != ""){
       setModalShow(true);
     }
   }, [gameWinner]);
+
 
   useEffect(() => {
     console.log("adminButtonDisabled",adminButtonDisabled);
@@ -99,6 +115,7 @@ function Game(props) {
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
+    // const totalRounds = props.location.state.rounds;
     if(props.location.state.totalRounds != undefined){
       setTotalRounds(props.location.state.totalRounds);
       setRoundsLeft(props.location.state.totalRounds);
@@ -146,6 +163,7 @@ function Game(props) {
 
   useEffect(() => {
     setUsername(props.location.state.userName);
+    console.log("game",props.location.state.userName)
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
@@ -153,56 +171,68 @@ function Game(props) {
 
     if (lobbyValue) setLobby(lobbyValue);
     let url = window.location.href;
-    //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
 
-    socket.on("newGame", function(data) {
-      let url = window.location.href;
-      if (url.indexOf("?") > -1) {
-        url += "&lobby=" + data.room;
-      } else {
-        url += "?lobby=" + data.room;
-      }
-      setUrlPath(url);
-      setLobby(data.room);
-      //setPlayerJoined(true);
-    });
-
-    socket.on("addPlayer", function(data) {
-      let player = {};
-      player.name = data.currentPlayer.name;
-      player.id = data.currentPlayer.id;
-      player.score = 0;
-      //setPlayers([...players, player]);
-      setPlayers(data.allPlayers);
-      setAdminName(data.allPlayers[0].name)
-      if(data.currentPlayer.id == data.allPlayers[0].id){
-        setAdminButtonDisabled(false)
-      }
-    });
-
-    socket.on("onGetPlayers", function(data) {
-      setPlayers(data.players);
-      //setPlayers(data.players);
+    // socket.on("onGetPlayers", function(data) {
+    //   setPlayers(data.players);
+    //   //setPlayers(data.players);
       
-    });
+    // });
 
-    socket.on("removePlayer", function(data) {
-      let filteredArray = players.filter(item => item.id !== data.id);
-      setPlayers(filteredArray);
-    });
+    // socket.on("removePlayer", function(data) {
+    //   let filteredArray = players.filter(item => item.id !== data.id);
+    //   setPlayers(filteredArray);
+    // });
+
+    if(lobby == ""){
+      console.log("empty lobby", localStorage.getItem('lobby'))
+      setLobby(localStorage.getItem('lobby'));
+    }
 
     let user;
     if(localStorage.getItem('userInfo') != null){
       user = JSON.parse(localStorage.getItem('userInfo'));
+      console.log("user", user);
     }
     if(players.length > 0){
+      console.log("player cehck", players)
       setAdminName(players[0].name)
       if(user.id == players[0].id){
         setAdminButtonDisabled(false)
       }
     }
-    
+
+    console.log("before onUpdateBoard", players)
+    socket.on("onUpdateBoard", function(data) {
+      console.log("onUpdateBoard", data)
+      if(players && players.length != 0){
+        let playersCopy = [...players];
+        console.log("onUpdateBoard playersCopy", playersCopy)
+        playersCopy.forEach(function(item, i) {
+          //if (item.id === data.winner.id && !winner) {
+          if (item.id === data.winner.id) {
+            playersCopy[i].score = data.winner.score;
+            console.log("testing winner",playersCopy[i] )
+            setWinner(playersCopy[i]);
+            //setPlayers(playersCopy);
+            setButtonDisabled(false);
+            setRefreshButtonDisabled(false);
+            setSuccess(true);
+          }
+        });
+      }
+    });
+
   }, [players]);
+
+  useEffect(() => {
+    if(lobby){
+      socket.on("onGetPlayers", function(data) {
+        setPlayers(data.players);
+        console.log("onGetPlayers", data.players)
+      });
+    }
+  }, [lobby]);
+
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(urlPath);
@@ -231,6 +261,10 @@ function Game(props) {
           gameWinner={gameWinner}
           setCountdown={setCountdown}
           countdown={countdown}
+          setLobby={setLobby}
+          rounds={rounds}
+          setTemp={setTemp}
+          temp={temp}
         />
       </div>
       <div className="selections block">
@@ -293,20 +327,10 @@ function Game(props) {
           buttondisabled={adminButtonDisabled}
           setwinner={setWinner}
           setsuccess={setSuccess}
+          setlobby={setLobby}
         />
 
         <br />
-        {urlPath ? (
-          <span>
-            <input type="text" value={urlPath} readOnly />
-            <button className="refresh block" onClick={copyToClipboard}>
-              Invite
-            </button>
-            {copySuccess}
-          </span>
-        ) : (
-          <span></span>
-        )}
       </div>
     </div>
   );
@@ -381,8 +405,8 @@ function Item(props) {
   }, [items]);
 
   useEffect(() => {
+    console.log("game winner", gameWinner)
     if(success && gameWinner ==""){
-      //refresh_image();
       setCountdown("3");
     }
   }, [success]);
@@ -458,24 +482,28 @@ function Item(props) {
 
 
 function MyVerticallyCenteredModal(props) {
-  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess} = props;
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby} = props;
 
   useEffect(() => {
     socket.on("onAnotherGame", function(data) {
+      console.log("onAnotherGame", data)
       setplayers(data);
-      setrounds(1);
-      setroundsleft(totalrounds);
-      setmodalshow(false);
-      setgamewinner("");
-      setwinner("");
-      setsuccess(false);
     });
-  }, [players])
+  }, [lobby])
 
   const anotherGameBtn = () => {
+    console.log("Another Game")
     socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gamewinner });
+    setrounds(1);
+    setroundsleft(totalrounds);
+    setmodalshow(false);
     setgamewinner("");
     setwinner("");
+    setsuccess(false);
+    // socket.on("onGetLobbyValues", function(data) {
+    //   //console.log("onGetLobbyValues1", data)
+    //   //setPlayers(data.players);
+    // });
   }  
 
   const leaveGameBtn = () => {
@@ -515,8 +543,21 @@ function Players(props) {
 
 
   useEffect(() => {
-    socket.emit("getPlayers", { room: lobby});
+      if(lobby){
+        socket.emit("getPlayers", { room: lobby});
+      }
+    // socket.on("onGetPlayers", function(data) {
+    //   setPlayers(data.players);
+    // });
   }, [lobby]);
+
+
+
+
+  // const anotherGameBtn = () => {
+  //   console.log("Another Game", players)
+  //   socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
+  // }  
 
   function handleChange(e) {
     setUserMsg(e.target.value);
@@ -534,11 +575,7 @@ function Players(props) {
       
     <div className="players">
       {roundsLeft != 0 && !gameWinner && success && <p>{winner.name} won the round</p>}
-      {/* { gameWinner && <p>{gameWinner.name} won the game</p>} */}
-      { rounds !== 1 && gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p>
-
-      </div>
-      }
+      { rounds !== 1 && gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p></div>}
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
         <div key={index} className="player">
@@ -586,10 +623,8 @@ function Players(props) {
               />
               <span className="message_submit" >
                 <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} />
-                {/* <Button variant="primary" size="sm" block onClick={handleSubmit}>Send</Button> */}
                 </span>
             </div>
-            {/* <Button variant="primary" size="sm" block onClick={handleSubmit}>Send</Button> */}
           </form>
         </div>
         </div>
@@ -624,26 +659,32 @@ function Boardgame(props) {
     totalRounds,
     gameWinner,
     setCountdown, 
-    countdown
+    countdown,
+    setLobby,
+    rounds,
+    setTemp,
+    temp
   } = props;
 
   useEffect(() => {
-    console.log("before onUpdateBoard", players)
-    socket.on("onUpdateBoard", function(data) {
-      console.log("onUpdateBoard", players)
-      let playersCopy = [...players];
-      playersCopy.forEach(function(item, i) {
-        //if (item.id === data.winner.id && !winner) {
-        if (item.id === data.winner.id) {
-          playersCopy[i].score = data.winner.score;
-          setWinner(playersCopy[i]);
-          //setPlayers(playersCopy);
-          setButtonDisabled(false);
-          setRefreshButtonDisabled(false);
-          setSuccess(true);
-        }
-      });
-    });
+    // console.log("before onUpdateBoard", players)
+    // socket.on("onUpdateBoard", function(data) {
+    //   console.log("onUpdateBoard", data)
+    //   let playersCopy = [...players];
+    //   console.log("onUpdateBoard playersCopy", playersCopy)
+    //   playersCopy.forEach(function(item, i) {
+    //     //if (item.id === data.winner.id && !winner) {
+    //     if (item.id === data.winner.id) {
+    //       playersCopy[i].score = data.winner.score;
+    //       console.log("testing winner",playersCopy[i] )
+    //       setWinner(playersCopy[i]);
+    //       setPlayers(playersCopy);
+    //       setButtonDisabled(false);
+    //       setRefreshButtonDisabled(false);
+    //       setSuccess(true);
+    //     }
+    //   });
+    // });
   }, [players]);
 
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
@@ -655,7 +696,6 @@ function Boardgame(props) {
 
   const score = item => {
     if (item === randomItem){
-      //if (!winner) {
       if (countdown < 0) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
@@ -666,21 +706,18 @@ function Boardgame(props) {
           }
         });
       }  
-      //}
     } else {
       console.log("wrong", countdown);
-      //if (!winner) {
       if (countdown < 0) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            // socket.on("onUpdateBoard", function(data) {
-            // });
+            // console.log("sending data onUpdateBoard", players);
+            // setTemp(temp+1);
           }
         });
       }
-      //}
     }
   };
 

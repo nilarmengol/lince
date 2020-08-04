@@ -152,7 +152,6 @@ var ioEvents = function(IO) {
             IO.in(currentRoomId).emit('removePlayer', {
                 id: socket.id
             });
-
             const sockets = IO.adapter.rooms[currentRoomId];
             if(!sockets) {
                 delete gameData[currentRoomId]; //clear room data when all players are gone
@@ -185,7 +184,7 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             });
-
+            //IO.emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[roomId].players });
             socket.emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[roomId].players });
         });
 
@@ -229,8 +228,10 @@ var ioEvents = function(IO) {
          * Create a new game room. 
          */
         socket.on('getRoomDet', function (data) {
-            var length = IO.adapter.rooms[data.room].length;
-            socket.emit('roomDet', {length:length });
+            if( IO.adapter.rooms[data.room] != undefined){
+                var length = IO.adapter.rooms[data.room].length;
+                socket.emit('roomDet', {length:length });
+            }
         });
 
         socket.on('startGame', function (data) {
@@ -291,6 +292,7 @@ var ioEvents = function(IO) {
                 gameData[data.room].players = playersCopy;
 
                 IO.in(data.room).emit('onAnotherGame', gameData[data.room].players);
+                //socket.emit('onAnotherGame', gameData[data.room].players);
             }
 
             
@@ -307,8 +309,7 @@ var ioEvents = function(IO) {
 
         socket.on('updateBoard', function (data) {
             data.winner.score = data.winner.score +1;
-            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
-
+            console.log("UpdateBoard", data)
             if(gameData[data.room] != undefined && data.room){ 
                 let playersCopy = gameData[data.room].players;
                 playersCopy.forEach(function(item, i) {
@@ -319,15 +320,34 @@ var ioEvents = function(IO) {
                 gameData[data.room].players = playersCopy;
             }
 
+            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner });
+            //socket.emit('onUpdateBoard', { room: data.room, winner: data.winner });
+
+
 
         });
 
         socket.on('getPlayers', function (data) {
+            console.log("GetPlayers", data)
             var room = IO.adapter.rooms[data.room];
             if (room && room.length >= 0) {
                 socket.join(data.room);
-                //socket.emit('onGetPlayers', { players: gameData[data.room].players});              
-                IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players});              
+                socket.emit('onGetPlayers', { players: gameData[data.room].players});              
+                //IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players});              
+            } else {
+                socket.emit('err', {
+                    message: 'Sorry, no player in the room!'
+                });
+            }
+        });
+
+        socket.on('getPlayers_lobby', function (data) {
+            var room = IO.adapter.rooms[data.room];
+            console.log("getPlayers_lobby room", room)
+            if (room && room.length >= 0) {
+                socket.join(data.room);
+                //socket.emit('onGetPlayers_lobby', { players: gameData[data.room].players});              
+                IO.in(data.room).emit('onGetPlayers_lobby', { players: gameData[data.room].players});              
             } else {
                 socket.emit('err', {
                     message: 'Sorry, no player in the room!'
