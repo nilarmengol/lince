@@ -236,7 +236,7 @@ var ioEvents = function(IO) {
 
         socket.on('startGame', function (data) {
             var count = IO.adapter.rooms[data.room].length;
-            if(count >= 1){
+            if(count >= 2){
                 IO.in(data.room).emit('startGameRes', {room :data.room, name:data.name, err: null});
             }else{
                 IO.in(data.room).emit('startGameRes', {err : "Minimum 2 player need to start game"});

@@ -84,8 +84,8 @@ function Game(props) {
 
   useEffect(() => {
     if(winner){
-    if(winner.score > totalRounds/3){
-     //if(winner.score > totalRounds/players.length){
+    //if(winner.score > totalRounds/3){
+     if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
       }else{
         setRoundsLeft(roundsLeft - 1);
