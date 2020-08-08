@@ -84,8 +84,8 @@ function Game(props) {
 
   useEffect(() => {
     if(winner){
-      //if(winner.score > totalRounds/3){
-     if(winner.score > totalRounds/players.length){
+    if(winner.score > totalRounds/3){
+     //if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
       }else{
         setRoundsLeft(roundsLeft - 1);
@@ -175,6 +175,7 @@ function Game(props) {
     }
 
     socket.on("onUpdateBoard", function(data) {
+    console.log("onUpdateBoard", data)
       if(players && players.length != 0){
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
@@ -189,6 +190,9 @@ function Game(props) {
         setSuccess(true);
       }
     });
+
+    console.log("Players", players)
+
 
   }, [players]);
 
@@ -451,21 +455,29 @@ function MyVerticallyCenteredModal(props) {
   const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby} = props;
 
   useEffect(() => {
+    console.log("onAnotherGame lobby", lobby)
     if(lobby){
       socket.on("onAnotherGame", function(data) {
+        console.log("onAnotherGame", data)
         setplayers(data);
+        setrounds(1);
+        setroundsleft(totalrounds);
+        setmodalshow(false);
+        setgamewinner("");
+        setwinner("");
+        setsuccess(false);
       });
     }
   }, [lobby])
 
   const anotherGameBtn = () => {
     socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gamewinner });
-    setrounds(1);
-    setroundsleft(totalrounds);
-    setmodalshow(false);
-    setgamewinner("");
-    setwinner("");
-    setsuccess(false);
+    // setrounds(1);
+    // setroundsleft(totalrounds);
+    // setmodalshow(false);
+    // setgamewinner("");
+    // setwinner("");
+    // setsuccess(false);
   }  
 
   const leaveGameBtn = () => {
