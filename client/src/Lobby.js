@@ -24,9 +24,6 @@ const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
 function Lobby(props) {
-    //const ENDPOINT = "http://127.0.0.1:4001/lobby";
-    // const ENDPOINT = "http://127.0.0.1:4001/";
-    // const socket = io(ENDPOINT);
     const [urlPath, setUrlPath] = useState("");
     const history = useHistory();
     const [randomItem, setRandomItem] = useState("");
@@ -78,27 +75,15 @@ function Lobby(props) {
         setUrlPath(localStorage.getItem('inviteUrl'));
       }
 
-
-
-
       if(lobby == ""){
-        console.log("empty lobby", localStorage.getItem('lobby'))
         setLobby(localStorage.getItem('lobby'));
       }
-
-
-      // if(lobbyValue!=="" && localStorage.getItem('lobby') === null){
-      //   localStorage.setItem('lobby', lobbyValue);
-      // }
-
       if(lobbyValue == null && localStorage.getItem('lobby') !== null){
         setLobby(localStorage.getItem('lobby'));
       }
   
       let url = window.location.href;
-      //if (url.indexOf("?") > -1) setUrlPath(window.location.href);
       socket.on("newGame", function(data) {
-        //let url = window.location.href;
         let url = props.location.state.url;
         if (url.indexOf("?") > -1) {
           url += "&lobby=" + data.room;
@@ -106,7 +91,6 @@ function Lobby(props) {
           url += "?lobby=" + data.room;
         }
         localStorage.removeItem('inviteUrl');
-        // console.log("url", url)
         localStorage.setItem('inviteUrl', url);
         setUrlPath(url);
         setLobby(data.room);
@@ -115,12 +99,10 @@ function Lobby(props) {
       });
   
       socket.on("addPlayer", function(data) {
-        console.log("add player", data);
         let player = {};
         player.name = data.currentPlayer.name;
         player.id = data.currentPlayer.id;
         player.score = 0;
-        //setPlayers([...players, player]);
         setPlayers(data.allPlayers);
         setAdminName(data.allPlayers[0].name)
         if(data.currentPlayer.id == data.allPlayers[0].id){
@@ -129,15 +111,11 @@ function Lobby(props) {
 
         // userInfo localstorage
         if(localStorage.getItem('userInfo') === null){
-          //localStorage.setItem('userInfo', data.currentPlayer);
-          console.log("Player check", player)
           localStorage.setItem('userInfo', JSON.stringify(player));
         }
         if(data.inviteUrl != undefined){
           localStorage.setItem('inviteUrl', data.inviteUrl);
         }
-
-        //localStorage.setItem('inviteUrl', data.inviteUrl);
 
       });
   
@@ -231,7 +209,6 @@ function Lobby(props) {
       }
       //setPlayers([]);
       socket.on("onGetPlayers_lobby", function(data) {
-        console.log("onGetPlayers lobby", data)
           setPlayers(data.players);
           setAdminName(data.players[0].name)
           let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));

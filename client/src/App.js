@@ -218,7 +218,7 @@ function App() {
                   Some quick example text to build on the card title and make up the bulk of
                   the card's content.
                 </Card.Text> */}
-                <AdSense.Google
+                {/* <AdSense.Google
                   client='ca-pub-4780603485802173'
                   slot='2930227358'
                   style={{ display: 'block' }}
@@ -226,7 +226,15 @@ function App() {
                   data-adtest="on"
                   responsive='true'
                   layoutKey='-gw-1+2a-9x+5c'
-                />    
+                />   */}
+                <AdSense.Google
+                  data-adtest="on"
+                  client='ca-pub-0000000000000000'
+                  slot='0000000000'
+                  style={{ display: 'block' }}
+                  format='auto'
+                  responsive='true'
+                />  
               </Card.Body>
             </Card>
             </Form>

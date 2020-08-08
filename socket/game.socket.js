@@ -309,7 +309,6 @@ var ioEvents = function(IO) {
 
         socket.on('updateBoard', function (data) {
             data.winner.score = data.winner.score +1;
-            console.log("UpdateBoard", data)
             if(gameData[data.room] != undefined && data.room){ 
                 let playersCopy = gameData[data.room].players;
                 playersCopy.forEach(function(item, i) {
@@ -328,7 +327,6 @@ var ioEvents = function(IO) {
         });
 
         socket.on('getPlayers', function (data) {
-            console.log("GetPlayers", data)
             var room = IO.adapter.rooms[data.room];
             if (room && room.length >= 0) {
                 socket.join(data.room);
@@ -343,7 +341,6 @@ var ioEvents = function(IO) {
 
         socket.on('getPlayers_lobby', function (data) {
             var room = IO.adapter.rooms[data.room];
-            console.log("getPlayers_lobby room", room)
             if (room && room.length >= 0) {
                 socket.join(data.room);
                 //socket.emit('onGetPlayers_lobby', { players: gameData[data.room].players});              

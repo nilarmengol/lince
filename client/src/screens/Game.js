@@ -76,17 +76,14 @@ function Game(props) {
   useEffect(() => {}, [success]);
 
   useEffect(() => {
-    if(msgs)
-    {
+    if(msgs){
     setAllMsg([...allMsg, msgs]);
     }
     
   }, [msgs]);
 
   useEffect(() => {
-    if(winner)
-    {
-      console.log("winner", winner);
+    if(winner){
       //if(winner.score > totalRounds/3){
      if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
@@ -104,18 +101,11 @@ function Game(props) {
     }
   }, [gameWinner]);
 
-
-  useEffect(() => {
-    console.log("adminButtonDisabled",adminButtonDisabled);
-  }, [adminButtonDisabled]);
-  
-
   useEffect(() => {
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
-    // const totalRounds = props.location.state.rounds;
     if(props.location.state.totalRounds != undefined){
       setTotalRounds(props.location.state.totalRounds);
       setRoundsLeft(props.location.state.totalRounds);
@@ -124,7 +114,6 @@ function Game(props) {
       setDifficulty(props.location.state.difficulty);
     }
     
-
     const difficulty = props.location.state.difficulty;
     
     let itemsIcons = "";
@@ -163,7 +152,6 @@ function Game(props) {
 
   useEffect(() => {
     setUsername(props.location.state.userName);
-    console.log("game",props.location.state.userName)
     let queryString = window.location.search;
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
@@ -171,64 +159,43 @@ function Game(props) {
 
     if (lobbyValue) setLobby(lobbyValue);
     let url = window.location.href;
-
-    // socket.on("onGetPlayers", function(data) {
-    //   setPlayers(data.players);
-    //   //setPlayers(data.players);
-      
-    // });
-
-    // socket.on("removePlayer", function(data) {
-    //   let filteredArray = players.filter(item => item.id !== data.id);
-    //   setPlayers(filteredArray);
-    // });
-
     if(lobby == ""){
-      console.log("empty lobby", localStorage.getItem('lobby'))
       setLobby(localStorage.getItem('lobby'));
     }
 
     let user;
     if(localStorage.getItem('userInfo') != null){
       user = JSON.parse(localStorage.getItem('userInfo'));
-      console.log("user", user);
     }
     if(players.length > 0){
-      console.log("player cehck", players)
       setAdminName(players[0].name)
       if(user.id == players[0].id){
         setAdminButtonDisabled(false)
       }
     }
 
-    console.log("before onUpdateBoard", players)
     socket.on("onUpdateBoard", function(data) {
-      console.log("onUpdateBoard", data)
       if(players && players.length != 0){
         let playersCopy = [...players];
-        console.log("onUpdateBoard playersCopy", playersCopy)
         playersCopy.forEach(function(item, i) {
           //if (item.id === data.winner.id && !winner) {
           if (item.id === data.winner.id) {
             playersCopy[i].score = data.winner.score;
-            console.log("testing winner",playersCopy[i] )
             setWinner(playersCopy[i]);
-            //setPlayers(playersCopy);
-            setButtonDisabled(false);
-            setRefreshButtonDisabled(false);
-            setSuccess(true);
           }
         });
+        setButtonDisabled(false);
+        setRefreshButtonDisabled(false);
+        setSuccess(true);
       }
     });
 
   }, [players]);
 
   useEffect(() => {
-    if(lobby){
+    if(lobby && players.length == 0){
       socket.on("onGetPlayers", function(data) {
         setPlayers(data.players);
-        console.log("onGetPlayers", data.players)
       });
     }
   }, [lobby]);
@@ -405,7 +372,6 @@ function Item(props) {
   }, [items]);
 
   useEffect(() => {
-    console.log("game winner", gameWinner)
     if(success && gameWinner ==""){
       setCountdown("3");
     }
@@ -485,14 +451,14 @@ function MyVerticallyCenteredModal(props) {
   const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby} = props;
 
   useEffect(() => {
-    socket.on("onAnotherGame", function(data) {
-      console.log("onAnotherGame", data)
-      setplayers(data);
-    });
+    if(lobby){
+      socket.on("onAnotherGame", function(data) {
+        setplayers(data);
+      });
+    }
   }, [lobby])
 
   const anotherGameBtn = () => {
-    console.log("Another Game")
     socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gamewinner });
     setrounds(1);
     setroundsleft(totalrounds);
@@ -500,10 +466,6 @@ function MyVerticallyCenteredModal(props) {
     setgamewinner("");
     setwinner("");
     setsuccess(false);
-    // socket.on("onGetLobbyValues", function(data) {
-    //   //console.log("onGetLobbyValues1", data)
-    //   //setPlayers(data.players);
-    // });
   }  
 
   const leaveGameBtn = () => {
@@ -546,18 +508,7 @@ function Players(props) {
       if(lobby){
         socket.emit("getPlayers", { room: lobby});
       }
-    // socket.on("onGetPlayers", function(data) {
-    //   setPlayers(data.players);
-    // });
   }, [lobby]);
-
-
-
-
-  // const anotherGameBtn = () => {
-  //   console.log("Another Game", players)
-  //   socket.emit("anotherGame", { room: lobby, players: players, gameWinner: gameWinner });
-  // }  
 
   function handleChange(e) {
     setUserMsg(e.target.value);
@@ -691,7 +642,6 @@ function Boardgame(props) {
 
   const endMatch = item => {
     console.log("end match")
-    //setCountdown("3")
   }  
 
   const score = item => {
@@ -701,8 +651,6 @@ function Boardgame(props) {
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            // socket.on("onUpdateBoard", function(data) {
-            // });
           }
         });
       }  
@@ -713,8 +661,6 @@ function Boardgame(props) {
         playersCopy.forEach(function(item, i) {
           if (item.name === userName) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
-            // console.log("sending data onUpdateBoard", players);
-            // setTemp(temp+1);
           }
         });
       }
