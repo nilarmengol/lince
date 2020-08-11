@@ -75,9 +75,9 @@ function Lobby(props) {
         setUrlPath(localStorage.getItem('inviteUrl'));
       }
 
-      if(lobby == ""){
-        setLobby(localStorage.getItem('lobby'));
-      }
+      // if(lobby == ""){
+      //   setLobby(localStorage.getItem('lobby'));
+      // }
       if(lobbyValue == null && localStorage.getItem('lobby') !== null){
         setLobby(localStorage.getItem('lobby'));
       }
@@ -199,6 +199,7 @@ function Lobby(props) {
 
 
     useEffect(() => {
+      console.log("lobby", lobby);
       let getLobby = localStorage.getItem('lobby');
       //if(lobby && getLobby === null){
       if(lobby){
@@ -209,6 +210,7 @@ function Lobby(props) {
       }
       //setPlayers([]);
       socket.on("onGetPlayers_lobby", function(data) {
+          console.log("onGetPlayers_lobby",data)
           setPlayers(data.players);
           setAdminName(data.players[0].name)
           let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));

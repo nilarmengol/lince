@@ -71,7 +71,29 @@ function Game(props) {
   const [temp, setTemp] = useState(0);
 
 
-
+  useEffect(() => {
+    if(players){
+      socket.on("onUpdateBoard", function(data) {
+      console.log("onUpdateBoard", data)
+        //if(players && players.length != 0){
+          //let playersCopy = [...players];
+          let playersCopy = data.allPlayers;
+          console.log("onUpdateBoard playersCopy", playersCopy)
+          playersCopy.forEach(function(item, i) {
+            //if (item.id === data.winner.id && !winner) {
+            if (item.id === data.winner.id) {
+              playersCopy[i].score = data.winner.score;
+              setWinner(playersCopy[i]);
+            }
+          });
+          setPlayers(playersCopy)
+          setButtonDisabled(false);
+          setRefreshButtonDisabled(false);
+          setSuccess(true);
+        //}
+      });
+    }
+  }, []);
 
   useEffect(() => {}, [success]);
 
@@ -83,6 +105,7 @@ function Game(props) {
   }, [msgs]);
 
   useEffect(() => {
+    console.log("winner", winner)
     if(winner){
     //if(winner.score > totalRounds/3){
      if(winner.score > totalRounds/players.length){
@@ -174,22 +197,40 @@ function Game(props) {
       }
     }
 
-    socket.on("onUpdateBoard", function(data) {
-    console.log("onUpdateBoard", data)
-      if(players && players.length != 0){
-        let playersCopy = [...players];
-        playersCopy.forEach(function(item, i) {
-          //if (item.id === data.winner.id && !winner) {
-          if (item.id === data.winner.id) {
-            playersCopy[i].score = data.winner.score;
-            setWinner(playersCopy[i]);
-          }
-        });
-        setButtonDisabled(false);
-        setRefreshButtonDisabled(false);
-        setSuccess(true);
-      }
-    });
+    // socket.on("onUpdateBoard", function(data) {
+    // console.log("onUpdateBoard", data)
+    //   if(players && players.length != 0){
+    //     let playersCopy = [...players];
+    //     playersCopy.forEach(function(item, i) {
+    //       //if (item.id === data.winner.id && !winner) {
+    //       if (item.id === data.winner.id) {
+    //         playersCopy[i].score = data.winner.score;
+    //         setWinner(playersCopy[i]);
+    //       }
+    //     });
+    //     setButtonDisabled(false);
+    //     setRefreshButtonDisabled(false);
+    //     setSuccess(true);
+    //   }
+    // });
+
+    // socket.on("onUpdateBoard", function(data) {
+    //   console.log("onUpdateBoard", data)
+    //     if(players && players.length != 0){
+    //       let playersCopy = [...players];
+    //       console.log("onUpdateBoard playersCopy", playersCopy)
+    //       playersCopy.forEach(function(item, i) {
+    //         //if (item.id === data.winner.id && !winner) {
+    //         if (item.id === data.winner.id) {
+    //           playersCopy[i].score = data.winner.score;
+    //           setWinner(playersCopy[i]);
+    //         }
+    //       });
+    //       setButtonDisabled(false);
+    //       setRefreshButtonDisabled(false);
+    //       setSuccess(true);
+    //     }
+    //   });
 
     console.log("Players", players)
 
@@ -199,6 +240,7 @@ function Game(props) {
   useEffect(() => {
     if(lobby && players.length == 0){
       socket.on("onGetPlayers", function(data) {
+        console.log("onGetPlayers", data)
         setPlayers(data.players);
       });
     }
@@ -630,25 +672,26 @@ function Boardgame(props) {
   } = props;
 
   useEffect(() => {
-    // console.log("before onUpdateBoard", players)
-    // socket.on("onUpdateBoard", function(data) {
+    // if(players){
+    //   socket.on("onUpdateBoard", function(data) {
     //   console.log("onUpdateBoard", data)
-    //   let playersCopy = [...players];
-    //   console.log("onUpdateBoard playersCopy", playersCopy)
-    //   playersCopy.forEach(function(item, i) {
-    //     //if (item.id === data.winner.id && !winner) {
-    //     if (item.id === data.winner.id) {
-    //       playersCopy[i].score = data.winner.score;
-    //       console.log("testing winner",playersCopy[i] )
-    //       setWinner(playersCopy[i]);
-    //       setPlayers(playersCopy);
+    //     if(players && players.length != 0){
+    //       let playersCopy = [...players];
+    //       console.log("onUpdateBoard playersCopy", playersCopy)
+    //       playersCopy.forEach(function(item, i) {
+    //         //if (item.id === data.winner.id && !winner) {
+    //         if (item.id === data.winner.id) {
+    //           playersCopy[i].score = data.winner.score;
+    //           setWinner(playersCopy[i]);
+    //         }
+    //       });
     //       setButtonDisabled(false);
     //       setRefreshButtonDisabled(false);
     //       setSuccess(true);
     //     }
     //   });
-    // });
-  }, [players]);
+    // }
+  }, []);
 
 //}, [players, setButtonDisabled, setRefreshButtonDisabled, setSuccess, setPlayers, setWinner, winner]);
 
@@ -657,6 +700,13 @@ function Boardgame(props) {
   }  
 
   const score = item => {
+
+    let user;
+    if(localStorage.getItem('userInfo') != null){
+      user = JSON.parse(localStorage.getItem('userInfo'));
+    }
+
+
     if (item === randomItem){
       if (countdown < 0) {
         let playersCopy = [...players];
@@ -671,7 +721,7 @@ function Boardgame(props) {
       if (countdown < 0) {
         let playersCopy = [...players];
         playersCopy.forEach(function(item, i) {
-          if (item.name === userName) {
+          if (item.id === user.id) {
             socket.emit("updateBoard", { room: lobby, winner: playersCopy[i] });
           }
         });
