@@ -120,6 +120,7 @@ function Lobby(props) {
       });
   
       socket.on("removePlayer", function(data) {
+        console.log("remove player", data);
         let filteredArray = players.filter(item => item.id !== data.id);
         setPlayers(filteredArray);
       });

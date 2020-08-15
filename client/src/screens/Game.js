@@ -465,6 +465,11 @@ function Item(props) {
     history.push("/");
   }
 
+  const LeaveGame = () => {
+    console.log("button press")
+    socket.emit("disconnect");
+  }
+
   return (
     <div>
       <div className="text-center">
@@ -486,7 +491,8 @@ function Item(props) {
       </div>)}
       <div className="text-center pt-2 pb-2">
         <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
-
+        <br></br><br></br>
+        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={LeaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
       </div>
     </div>
   );
