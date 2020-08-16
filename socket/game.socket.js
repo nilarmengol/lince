@@ -2,6 +2,7 @@
 var ioEvents = function(IO) {
 
     let gameData = {};
+    let socketDetails = {};
 
     IO.on('connection', function(socket) {
       
@@ -12,16 +13,67 @@ var ioEvents = function(IO) {
         /**
          * Disconnect from the room
          */
-        socket.on("disconnect", () => {
-            console.log("roomId", currentRoomId);
-            IO.in(currentRoomId).emit('removePlayer', {
-                id: socket.id
-            });
-            // const sockets = IO.adapter.rooms[currentRoomId];
-            // if(!sockets) {
-            //     console.log("delete gameData")
-            //     delete gameData[currentRoomId]; //clear room data when all players are gone
-            // } 
+        // socket.on("disconnect", () => {
+        //     //console.log("disconnect", localStorage.getItem('userInfo'));
+        //     console.log("socket room Id", socketDetails[socket.id])
+        //     let roomId = socketDetails[socket.id];
+        //     // 
+        //     if(gameData[roomId] != undefined && socketDetails[socket.id]!= undefined){
+        //         let players = gameData[roomId].players;
+        //         console.log("Players", players)
+
+        //         // 
+        //         let remove = players.findIndex(function(element){
+        //         return element.id===socket.id;
+        //         })
+        //         if(remove!==-1){
+        //             console.log("remove", remove)
+        //             players.splice(remove, 1)
+        //         }
+        //         console.log ("After removing", players);
+        //         gameData[roomId].players = players;
+        //         // lobby page
+        //         IO.in(roomId).emit('onGetPlayers_lobby', { players: gameData[roomId].players}); 
+
+        //         // gamepage
+        //         IO.in(roomId).emit('onGetPlayers', { players: gameData[roomId].players});     
+        //     }
+            
+            
+        //     // 
+        //     IO.in(currentRoomId).emit('removePlayer', {
+        //         id: socket.id
+        //     });
+        //     // const sockets = IO.adapter.rooms[currentRoomId];
+        //     // if(!sockets) {
+        //     //     console.log("delete gameData")
+        //     //     delete gameData[currentRoomId]; //clear room data when all players are gone
+        //     // } 
+
+        // });
+
+        socket.on("leaveGame", function (data) {
+            console.log("leaveGame", data)
+            let socketId = data.id;
+            let roomId = socketDetails[socketId];
+            // 
+            if(gameData[roomId] != undefined && socketDetails[socketId]!= undefined){
+                let players = gameData[roomId].players;
+                // 
+                let remove = players.findIndex(function(element){
+                return element.id===socketId;
+                })
+                if(remove!==-1){
+                    players.splice(remove, 1)
+                }
+                gameData[roomId].players = players;
+                // lobby page
+                IO.in(roomId).emit('onGetPlayers_lobby', { players: gameData[roomId].players}); 
+
+                // gamepage
+                IO.in(roomId).emit('onGetPlayers', { players: gameData[roomId].players});   
+                  
+            }
 
         });
 
@@ -31,6 +83,9 @@ var ioEvents = function(IO) {
         socket.on('createGame', function (data) {
             const roomId = data.name.split(' ')[0] + '-' + socket.id; //creating private lobby
             socket.join(roomId);
+            // 
+            socketDetails[socket.id] = roomId;
+
             currentRoomId = roomId;
 
             socket.emit('newGame', {
@@ -64,6 +119,8 @@ var ioEvents = function(IO) {
             var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
                 socket.join(data.room);
+                // 
+                socketDetails[socket.id] = data.room;
                 currentRoomId = data.room;
                 let addPlayerOptions = {
                     name: data.name,
@@ -187,13 +244,8 @@ var ioEvents = function(IO) {
                 });
                 gameData[data.room].players = playersCopy;
             }
-            //console.log("updateBoard res", gameData[data.room].players)         
 
-            //socket.emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:gameData[data.room].players });
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:gameData[data.room].players });
-            //socket.emit('onUpdateBoard', { room: data.room, winner: data.winner });
-
-
 
         });
 
@@ -211,24 +263,10 @@ var ioEvents = function(IO) {
             }
         });
 
-        // socket.on('getPlayers_lobby', function (data) {
-        //     console.log("getPlayers_lobby", data);
-        //     console.log("test", gameData)
-        //     var room = IO.adapter.rooms[data.room];
-        //     // if (room && room.length >= 0) {
-        //     //     socket.join(data.room);
-        //         //socket.emit('onGetPlayers_lobby', { players: gameData[data.room].players});   
-        //         socket.join(data.room);           
-        //         IO.in(data.room).emit('onGetPlayers_lobby', { players: gameData[data.room].players});              
-        //     // } else {
-        //     //     socket.emit('err', {
-        //     //         message: 'Sorry, no player in the room!'
-        //     //     });
-        //     // }
-        // });
-
         socket.on('getPlayers_lobby', function (data) {
-            socket.join(data.room);           
+            socket.join(data.room);
+            // 
+            socketDetails[socket.id] = data.room;           
             var room = IO.adapter.rooms[data.room];
             if (room && room.length >= 0) { 
                 IO.in(data.room).emit('onGetPlayers_lobby', { players: gameData[data.room].players});              

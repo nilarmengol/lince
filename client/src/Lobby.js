@@ -56,7 +56,12 @@ function Lobby(props) {
       setCopySuccess("Copied!");
     };
 
-  
+    const leaveGame = () => {
+      let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+      socket.emit("leaveGame", { id: currentPlayer.id});
+      history.push("/");
+    };
+
     useEffect(() => {}, [success]);
 
     useEffect(() => {
@@ -75,9 +80,6 @@ function Lobby(props) {
         setUrlPath(localStorage.getItem('inviteUrl'));
       }
 
-      // if(lobby == ""){
-      //   setLobby(localStorage.getItem('lobby'));
-      // }
       if(lobbyValue == null && localStorage.getItem('lobby') !== null){
         setLobby(localStorage.getItem('lobby'));
       }
@@ -139,19 +141,6 @@ function Lobby(props) {
           setDifficulty(data.difficulty)
         }
       });
-
-      // socket.on("onGetPlayers", function(data) {
-      //   console.log("onGetPlayers lobby", data)
-      //     setPlayers(data.players);
-      //     setAdminName(data.players[0].name)
-      //     let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
-      //     if(currentPlayer.id == data.players[0].id){
-      //       setButtonDisabled(false)
-      //     }
-      //     //setPlayers(data.players);
-        
-      // });
-      
 
       if(redirection == true ){
         history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
@@ -278,6 +267,9 @@ function Lobby(props) {
                         Invite
                       </Button>
                       {copySuccess}
+                      <Button variant="secondary" size="lg" block onClick={leaveGame}>
+                        Leave Game
+                      </Button>
                     </span>
                   ) : (
                     <span></span>
