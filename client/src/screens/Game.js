@@ -112,6 +112,10 @@ function Game(props) {
     queryString = queryString.concat(window.location.hash);
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
+
+    // if(props.location.state.totalRounds === undefined){
+    //     history.push("/");
+    //   }
     if(props.location.state.totalRounds != undefined){
       setTotalRounds(props.location.state.totalRounds);
       setRoundsLeft(props.location.state.totalRounds);
@@ -149,6 +153,10 @@ function Game(props) {
       msg.message = data.message;
       setMsg(msg);
     });
+
+   
+
+
   }, []);
 
 
@@ -179,14 +187,52 @@ function Game(props) {
         setAdminButtonDisabled(false)
       }
     }
+
+    // socket.on("removePlayer", function(data) {
+    //   console.log("remove player", data);
+    //   socket.emit("leaveGame", { id: data.id});
+    //   history.push("/");
+    //   let filteredArray = players.filter(item => item.id !== data.id);
+    //   //setPlayers(filteredArray);
+    // });
+    
+
   }, [players]);
 
   useEffect(() => {
     if(lobby && players.length == 0){
       socket.on("onGetPlayers", function(data) {
         setPlayers(data.players);
+
+
+        let user = JSON.parse(localStorage.getItem('userInfo'));
+        let remove = 0;
+        data.players.forEach(function(item, i){
+            if(item.id == user.id){
+                remove++;
+            } 
+        });
+        if(remove == 0){
+          history.push("/");
+        }
+
       });
     }
+    console.log("lobby");
+    let user = JSON.parse(localStorage.getItem('userInfo'));
+    socket.on("removePlayer", function(data) {
+      console.log("remove player", data);
+      socket.emit("leaveGame", { id: data.id});
+      // console.log("user.id", user.id);
+      // console.log("data.id", data.id);
+      // if(user.id == data.id){
+      //   history.push("/");
+      // }
+      let filteredArray = players.filter(item => item.id !== data.id);
+      //setPlayers(filteredArray);
+    });
+   
+
   }, [lobby]);
 
 

@@ -13,6 +13,20 @@ var ioEvents = function(IO) {
         /**
          * Disconnect from the room
          */
+        socket.on("disconnect", () => {
+            console.log("disconnected");
+            IO.in(currentRoomId).emit('removePlayer', {
+                id: socket.id
+            });
+            socket.emit('removePlayer', {
+                id: socket.id
+            });
+            const sockets = IO.adapter.rooms[currentRoomId];
+            if(!sockets) {
+                console.log("delete gameData")
+                delete gameData[currentRoomId]; //clear room data when all players are gone
+            }
+        });
         // socket.on("disconnect", () => {
         //     //console.log("disconnect", localStorage.getItem('userInfo'));
         //     console.log("socket room Id", socketDetails[socket.id])
@@ -162,7 +176,20 @@ var ioEvents = function(IO) {
 
         socket.on('startGame', function (data) {
             var count = IO.adapter.rooms[data.room].length;
+            console.log("startGame", data)
+            console.log("count", count)
+            console.log("IO.adapter.rooms[data.room]", IO.adapter.rooms[data.room])
             if(count >= 2){
+
+                let playersCopy = data.players;
+                playersCopy.forEach(function(item, i) {
+                    // if (item.id === data.winner.id) {
+                    playersCopy[i].inGame = true;
+                    //}
+                });
+                gameData[data.room].players = playersCopy;
+
+
                 IO.in(data.room).emit('startGameRes', {room :data.room, name:data.name, err: null});
             }else{
                 IO.in(data.room).emit('startGameRes', {err : "Minimum 2 player need to start game"});
@@ -245,7 +272,21 @@ var ioEvents = function(IO) {
                 gameData[data.room].players = playersCopy;
             }
 
-            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:gameData[data.room].players });
+            let inGamePlayers = [];
+            let allPlayers = gameData[data.room].players;
+            console.log("getplayers", allPlayers);
+            allPlayers.forEach(function(item, i) {
+                if (item.inGame == true) {
+                    inGamePlayers.push({ 
+                    name : allPlayers[i].name,
+                    id : allPlayers[i].id,
+                    score : allPlayers[i].score,
+                    inGame : allPlayers[i].inGame
+                    });
+                }
+            });
+
+            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:inGamePlayers });
 
         });
 
@@ -253,7 +294,25 @@ var ioEvents = function(IO) {
             var room = IO.adapter.rooms[data.room];
             if (room && room.length >= 0) {
                 socket.join(data.room);
-                socket.emit('onGetPlayers', { players: gameData[data.room].players});     
+
+                let inGamePlayers = [];
+                let playersCopy = gameData[data.room].players;
+                console.log("getplayers", playersCopy);
+                playersCopy.forEach(function(item, i) {
+                    if (item.inGame == true) {
+                        inGamePlayers.push({ 
+                        name : playersCopy[i].name,
+                        id : playersCopy[i].id,
+                        score : playersCopy[i].score,
+                        inGame : playersCopy[i].inGame
+                        });
+                    }
+                });
+                gameData[data.room].players = playersCopy;
+
+
+                //socket.emit('onGetPlayers', { players: gameData[data.room].players});     
+                socket.emit('onGetPlayers', { players: inGamePlayers});     
                 console.log("onGetPlayers res", gameData[data.room].players)         
                 //IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players});              
             } else {

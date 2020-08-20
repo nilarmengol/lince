@@ -44,11 +44,12 @@ function Lobby(props) {
     const [difficulty_err, setDifficulty_err] = useState("");
     const [flag, setFlag] = useState("");
     const [minPlayersErr, setMinPlayersErr] = useState("");
+    const [inGame, setInGame] = useState(false);
 
 
     function handlePlayClick() {
       //history.push("/game?lobby="+lobby, {userName: userName});
-      socket.emit("startGame", { room: lobby,name: userName });
+      socket.emit("startGame", { room: lobby,name: userName, players: players });
     }
 
     const copyToClipboard = () => {
@@ -200,7 +201,10 @@ function Lobby(props) {
       }
       //setPlayers([]);
       socket.on("onGetPlayers_lobby", function(data) {
-          console.log("onGetPlayers_lobby",data)
+          console.log("onGetPlayers_lobby",data);
+          if(data.players[0].inGame == true){
+            setInGame(true)
+          }
           setPlayers(data.players);
           setAdminName(data.players[0].name)
           let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
@@ -295,6 +299,9 @@ function Lobby(props) {
                 </ListGroup>
               </Card.Body>
           </Card>
+          {inGame && <div class="alert alert-warning mt-2">  
+                    <strong>Oops! The Game already start. Please wait in lobby until they complete the game</strong>
+                </div> }
         </Col>
       </Row>
      
