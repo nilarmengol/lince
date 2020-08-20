@@ -203,18 +203,20 @@ function Game(props) {
     if(lobby && players.length == 0){
       socket.on("onGetPlayers", function(data) {
         setPlayers(data.players);
-
-
-        let user = JSON.parse(localStorage.getItem('userInfo'));
-        let remove = 0;
-        data.players.forEach(function(item, i){
-            if(item.id == user.id){
-                remove++;
-            } 
-        });
-        if(remove == 0){
-          history.push("/");
-        }
+        console.log("onGetPlayers", data);
+        //if(data.playerRemoved != undefined && data.playerRemoved == true){
+          console.log("if bolck")
+          let user = JSON.parse(localStorage.getItem('userInfo'));
+          let remove = 0;
+          data.players.forEach(function(item, i){
+              if(item.id == user.id){
+                  remove++;
+              } 
+          });
+          if(remove == 0){
+            history.push("/");
+          }
+        //}  
 
       });
     }

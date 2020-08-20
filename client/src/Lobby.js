@@ -102,6 +102,10 @@ function Lobby(props) {
       });
   
       socket.on("addPlayer", function(data) {
+        console.log("addPlayers", data)
+        if(data.inGame == true){
+          setRedirection(true);
+        }
         let player = {};
         player.name = data.currentPlayer.name;
         player.id = data.currentPlayer.id;
@@ -202,9 +206,9 @@ function Lobby(props) {
       //setPlayers([]);
       socket.on("onGetPlayers_lobby", function(data) {
           console.log("onGetPlayers_lobby",data);
-          if(data.players[0].inGame == true){
-            setInGame(true)
-          }
+          // if(data.players[0].inGame == true){
+          //   setInGame(true)
+          // }
           setPlayers(data.players);
           setAdminName(data.players[0].name)
           let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
@@ -299,9 +303,9 @@ function Lobby(props) {
                 </ListGroup>
               </Card.Body>
           </Card>
-          {inGame && <div class="alert alert-warning mt-2">  
+          {/* {inGame && <div class="alert alert-warning mt-2">  
                     <strong>Oops! The Game already start. Please wait in lobby until they complete the game</strong>
-                </div> }
+                </div> } */}
         </Col>
       </Row>
      

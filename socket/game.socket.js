@@ -82,10 +82,10 @@ var ioEvents = function(IO) {
                 }
                 gameData[roomId].players = players;
                 // lobby page
-                IO.in(roomId).emit('onGetPlayers_lobby', { players: gameData[roomId].players}); 
+                IO.in(roomId).emit('onGetPlayers_lobby', { players: gameData[roomId].players, playerRemoved: true}); 
 
                 // gamepage
-                IO.in(roomId).emit('onGetPlayers', { players: gameData[roomId].players});   
+                IO.in(roomId).emit('onGetPlayers', { players: gameData[roomId].players, playerRemoved: true});   
                   
             }
 
@@ -148,7 +148,15 @@ var ioEvents = function(IO) {
                     id: socket.id,
                     score: 0
                 });
-                IO.in(data.room).emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[data.room].players, inviteUrl: data.inviteUrl });
+
+                // 
+                let inGame = false;
+                if(gameData[data.room].inGame !== undefined && gameData[data.room].inGame !== ""){
+                    inGame = gameData[data.room].inGame;
+                }
+
+
+                IO.in(data.room).emit('addPlayer', {currentPlayer:addPlayerOptions, allPlayers: gameData[data.room].players, inviteUrl: data.inviteUrl, inGame: inGame });
             } else {
                 socket.emit('err', {
                     message: 'Sorry, The room is full!'
@@ -188,8 +196,7 @@ var ioEvents = function(IO) {
                     //}
                 });
                 gameData[data.room].players = playersCopy;
-
-
+                gameData[data.room].inGame = true;
                 IO.in(data.room).emit('startGameRes', {room :data.room, name:data.name, err: null});
             }else{
                 IO.in(data.room).emit('startGameRes', {err : "Minimum 2 player need to start game"});
@@ -272,21 +279,21 @@ var ioEvents = function(IO) {
                 gameData[data.room].players = playersCopy;
             }
 
-            let inGamePlayers = [];
-            let allPlayers = gameData[data.room].players;
-            console.log("getplayers", allPlayers);
-            allPlayers.forEach(function(item, i) {
-                if (item.inGame == true) {
-                    inGamePlayers.push({ 
-                    name : allPlayers[i].name,
-                    id : allPlayers[i].id,
-                    score : allPlayers[i].score,
-                    inGame : allPlayers[i].inGame
-                    });
-                }
-            });
+            // let inGamePlayers = [];
+            // let allPlayers = gameData[data.room].players;
+            // console.log("getplayers", allPlayers);
+            // allPlayers.forEach(function(item, i) {
+            //     if (item.inGame == true) {
+            //         inGamePlayers.push({ 
+            //         name : allPlayers[i].name,
+            //         id : allPlayers[i].id,
+            //         score : allPlayers[i].score,
+            //         inGame : allPlayers[i].inGame
+            //         });
+            //     }
+            // });
 
-            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:inGamePlayers });
+            IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:gameData[data.room].players });
 
         });
 
@@ -295,26 +302,26 @@ var ioEvents = function(IO) {
             if (room && room.length >= 0) {
                 socket.join(data.room);
 
-                let inGamePlayers = [];
-                let playersCopy = gameData[data.room].players;
-                console.log("getplayers", playersCopy);
-                playersCopy.forEach(function(item, i) {
-                    if (item.inGame == true) {
-                        inGamePlayers.push({ 
-                        name : playersCopy[i].name,
-                        id : playersCopy[i].id,
-                        score : playersCopy[i].score,
-                        inGame : playersCopy[i].inGame
-                        });
-                    }
-                });
-                gameData[data.room].players = playersCopy;
+                // let inGamePlayers = [];
+                // let playersCopy = gameData[data.room].players;
+                // console.log("getplayers", playersCopy);
+                // playersCopy.forEach(function(item, i) {
+                //     if (item.inGame == true) {
+                //         inGamePlayers.push({ 
+                //         name : playersCopy[i].name,
+                //         id : playersCopy[i].id,
+                //         score : playersCopy[i].score,
+                //         inGame : playersCopy[i].inGame
+                //         });
+                //     }
+                // });
+                //gameData[data.room].players = playersCopy;
 
-
+                IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players}); 
                 //socket.emit('onGetPlayers', { players: gameData[data.room].players});     
-                socket.emit('onGetPlayers', { players: inGamePlayers});     
+                //socket.emit('onGetPlayers', { players: inGamePlayers});     
                 console.log("onGetPlayers res", gameData[data.room].players)         
-                //IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players});              
+                            
             } else {
                 socket.emit('err', {
                     message: 'Sorry, no player in the room!'
