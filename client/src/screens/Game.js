@@ -52,13 +52,14 @@ function Game(props) {
   const [msgs, setMsg] = useState("");
   const [allMsg, setAllMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
-  const [countdown, setCountdown] = useState("3");
+  //const [countdown, setCountdown] = useState("3");
   const [modalShow, setModalShow] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminButtonDisabled, setAdminButtonDisabled] = useState(true);
   const [difficulty, setDifficulty] = useState("");
   const [temp, setTemp] = useState(0);
-
+  const [countdown, setCountdown] = useState("");
+  const [refreshItem, setRefreshItem] = useState("");
 
   useEffect(() => {
     if(players){
@@ -108,24 +109,6 @@ function Game(props) {
   }, [gameWinner]);
 
   useEffect(() => {
-    let queryString = window.location.search;
-    queryString = queryString.concat(window.location.hash);
-    const urlParams = new URLSearchParams(queryString);
-    const lobbyValue = urlParams.get("lobby");
-
-    // if(props.location.state.totalRounds === undefined){
-    //     history.push("/");
-    //   }
-    if(props.location.state.totalRounds != undefined){
-      setTotalRounds(props.location.state.totalRounds);
-      setRoundsLeft(props.location.state.totalRounds);
-    }
-    if(props.location.state.difficulty != undefined && props.location.state.difficulty !==""){
-      setDifficulty(props.location.state.difficulty);
-    }
-    
-    const difficulty = props.location.state.difficulty;
-    
     let itemsIcons = "";
     switch (difficulty) {
       case '1':
@@ -140,12 +123,55 @@ function Game(props) {
         itemsIcons = itemsIcons_all.slice(0, 500);
         setItems(itemsIcons_all.slice(0, 500));
         break;
-      default:
-        itemsIcons = itemsIcons_all.slice(0, 400);
-        setItems(itemsIcons_all.slice(0, 400));
-        break;
+      // default:
+      //   itemsIcons = itemsIcons_all.slice(0, 400);
+      //   setItems(itemsIcons_all.slice(0, 400));
+      //   break;
     }
-    itemsIcons ? setItems(itemsIcons) : setItems("")
+    itemsIcons ? setItems(itemsIcons) : setItems("");
+    //if(totalRounds == roundsLeft){ setCountdown("3"); }
+    
+  }, [difficulty]);
+
+  useEffect(() => {
+    let queryString = window.location.search;
+    queryString = queryString.concat(window.location.hash);
+    const urlParams = new URLSearchParams(queryString);
+    const lobbyValue = urlParams.get("lobby");
+
+    // if(props.location.state.totalRounds === undefined){
+    //     history.push("/");
+    //   }
+    // if(props.location.state.totalRounds != undefined){
+    //   setTotalRounds(props.location.state.totalRounds);
+    //   setRoundsLeft(props.location.state.totalRounds);
+    // }
+    // if(props.location.state.difficulty != undefined && props.location.state.difficulty !==""){
+    //   setDifficulty(props.location.state.difficulty);
+    // }
+    
+    //const difficulty = props.location.state.difficulty;
+    
+    // let itemsIcons = "";
+    // switch (difficulty) {
+    //   case '1':
+    //     itemsIcons = itemsIcons_all.slice(0, 200);
+    //     setItems(itemsIcons_all.slice(0, 200));
+    //     break;
+    //   case '2':
+    //     itemsIcons = itemsIcons_all.slice(0, 300);
+    //     setItems(itemsIcons_all.slice(0, 300));
+    //     break;
+    //   case '3':
+    //     itemsIcons = itemsIcons_all.slice(0, 500);
+    //     setItems(itemsIcons_all.slice(0, 500));
+    //     break;
+    //   // default:
+    //   //   itemsIcons = itemsIcons_all.slice(0, 400);
+    //   //   setItems(itemsIcons_all.slice(0, 400));
+    //   //   break;
+    // }
+    // itemsIcons ? setItems(itemsIcons) : setItems("")
 
     socket.on("onGroupMsg", function(data) {
       let msg = {};
@@ -154,7 +180,7 @@ function Game(props) {
       setMsg(msg);
     });
 
-   
+    //setCountdown("3");
 
 
   }, []);
@@ -205,20 +231,61 @@ function Game(props) {
         setPlayers(data.players);
         console.log("onGetPlayers", data);
         //if(data.playerRemoved != undefined && data.playerRemoved == true){
-          console.log("if bolck")
           let user = JSON.parse(localStorage.getItem('userInfo'));
           let remove = 0;
+          let remove1 = 0;
           data.players.forEach(function(item, i){
               if(item.id == user.id){
                   remove++;
               } 
+              if(item.inGame == undefined){
+                remove1++;
+              }
+              
           });
           if(remove == 0){
             history.push("/");
           }
+          //if(data.playerRemoved ==true){
+            console.log("players inGAme remove1", remove1);
+            // if(remove1 == 0 || data.playerRemoved != true){
+            //   setCountdown("3")
+            // }else{
+            //   setCountdown("-2");
+            // }
+            if(remove1 > 0 || data.playerRemoved == true){
+              setCountdown("-2")
+            }else{
+              setCountdown("3");
+            }
+          //}
         //}  
 
+
+        // 
+        if(data.lobbyValues != undefined){
+          setTotalRounds(data.lobbyValues.rounds);
+          setRoundsLeft(data.lobbyValues.roundsLeft);
+          setDifficulty(data.lobbyValues.difficulty);
+          setRounds(data.lobbyValues.rounds - data.lobbyValues.roundsLeft + 1 )
+        }else{
+          setTotalRounds(10);
+          setRoundsLeft(10);
+          setDifficulty("2");
+        }
+
+        if(data.refreshItem != undefined){
+          //setRandomItem(items[data.refreshItem]);
+          setRefreshItem(data.refreshItem)
+        }
+        // 
+
       });
+
+      // 
+      socket.emit("getLobbyValues", {room: lobby})
+      // 
+
     }
     console.log("lobby");
     let user = JSON.parse(localStorage.getItem('userInfo'));
@@ -298,6 +365,7 @@ function Game(props) {
           players={players}
           userName={userName}
           history={history}
+          refreshItem={refreshItem}
         />
         <Players
           players={players}
@@ -365,7 +433,8 @@ function Item(props) {
     history,
     difficulty,
     userName,
-    players
+    players,
+    refreshItem
 
 
   } = props;
@@ -390,13 +459,13 @@ function Item(props) {
       setRefreshButtonDisabled(true);
     });
 
-    socket.on("onNewItem", function(data) {
-      setWinner("");
-      setSuccess(false);
-      setButtonDisabled(true);
-      setRefreshButtonDisabled(true);
-      setRandomItem(itemsIcons[data.itemId]);
-    });
+    // socket.on("onNewItem", function(data) {
+    //   setWinner("");
+    //   setSuccess(false);
+    //   setButtonDisabled(true);
+    //   setRefreshButtonDisabled(true);
+    //   setRandomItem(itemsIcons[data.itemId]);
+    // });
 
     socket.on("onRefreshItem", function(data) {
       setWinner("");
@@ -414,12 +483,45 @@ function Item(props) {
     }
   }, [success]);
 
+
+  // let user;
+  // if(localStorage.getItem('userInfo') != null){
+  //   user = JSON.parse(localStorage.getItem('userInfo'));
+  // }
+  // if(players.length > 0){
+  //   setAdminName(players[0].name)
+  //   if(user.id == players[0].id){
+  //     setAdminButtonDisabled(false)
+  //   }
+  // }
+
+
+
   useEffect(() => {
-    countdown >= 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
-    if(countdown == 0){
-      refresh_image();
+    if(countdown != "-2"){
+      countdown >= 0 && setTimeout(() => setCountdown(countdown - 1), 1000);
+      // // 
+      let user;
+      if(localStorage.getItem('userInfo') != null){
+        user = JSON.parse(localStorage.getItem('userInfo'));
+        // console.log("user", user)
+        // console.log("players", players)
+      }
+      // // 
+      //console.log("adminButtonDisabled", adminButtonDisabled)
+      if(players.length > 0 && user.id == players[0].id){
+      console.log("countdown check", countdown)
+        if(countdown == 0 ){
+          refresh_image();
+        }
+      }
+    }else{
+      console.log("refreshItem",refreshItem)
+      if(refreshItem != ""){  
+        setRandomItem(itemsIcons[refreshItem]);
+      }
     }
-  }, [countdown]);
+  }, [countdown, refreshItem]);
 
   useEffect(() => {
     if(rounds/10 == 0){

@@ -105,6 +105,7 @@ function Lobby(props) {
         console.log("addPlayers", data)
         if(data.inGame == true){
           setRedirection(true);
+          setInGame(true)
         }
         let player = {};
         player.name = data.currentPlayer.name;
@@ -147,6 +148,7 @@ function Lobby(props) {
         }
       });
 
+      console.log("totalRounds", rounds);
       if(redirection == true ){
         history.push("/game?lobby="+lobby, {userName: userName, totalRounds: rounds, players: players, difficulty:difficulty});
       }
@@ -182,6 +184,28 @@ function Lobby(props) {
       setDifficulty(e.target.value);
     };
 
+    // useEffect(() => {
+    //   if(inGame == true){
+    //     let getRounds;
+    //     let getDifficulty;
+    //     socket.on("onGetLobbyValues", function(data){
+    //       if(data != null){
+    //         // setRounds(data.rounds);
+    //         // setDifficulty(data.difficulty)
+    //         getRounds = data.rounds;
+    //         getDifficulty = data.difficulty;
+    //         console.log("getRounds1",data.rounds)
+    //         console.log("getDifficulty1",data.difficulty)
+    //       }
+    //     });
+    //     console.log("getRounds",getRounds)
+    //     console.log("getDifficulty",getDifficulty)
+    //     if(getRounds != undefined){
+    //       history.push("/game?lobby="+lobby, {userName: userName, totalRounds: getRounds, players: players, difficulty:getDifficulty});
+    //     }
+    //   }
+    // }, [inGame]);
+
     useEffect(() => {
       if(lobby){
         if(flag){
@@ -209,11 +233,13 @@ function Lobby(props) {
           // if(data.players[0].inGame == true){
           //   setInGame(true)
           // }
-          setPlayers(data.players);
-          setAdminName(data.players[0].name)
-          let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
-          if(currentPlayer.id == data.players[0].id){
-            setButtonDisabled(false)
+          if(data.players.length > 0){
+            setPlayers(data.players);
+            setAdminName(data.players[0].name)
+            let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+            if(currentPlayer.id == data.players[0].id){
+              setButtonDisabled(false)
+            }
           }
       });
       
