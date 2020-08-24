@@ -129,8 +129,9 @@ function Lobby(props) {
   
       socket.on("removePlayer", function(data) {
         console.log("remove player", data);
+        socket.emit("leaveGame", { id: data.id});
         let filteredArray = players.filter(item => item.id !== data.id);
-        setPlayers(filteredArray);
+        //setPlayers(filteredArray);
       });
 
       socket.on("startGameRes", function(data) {
@@ -240,6 +241,19 @@ function Lobby(props) {
             if(currentPlayer.id == data.players[0].id){
               setButtonDisabled(false)
             }
+
+            // 
+            let user = JSON.parse(localStorage.getItem('userInfo'));
+            let remove = 0;
+            data.players.forEach(function(item, i){
+                if(item.id == user.id){
+                    remove++;
+                } 
+            });
+            if(remove == 0){
+              history.push("/");
+            }
+            // 
           }
       });
       
