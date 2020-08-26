@@ -91,7 +91,7 @@
   border: 1px solid silver;
   font-size: 16px;
   color: #fff;
-  background-color: rgba(17, 140, 255, 1);
+  /* background-color: rgba(17, 140, 255, 1); */
   justify-content: space-between;
 }
 .player p {
@@ -177,3 +177,27 @@
   font-weight: 600;
 }
 
+.player_0{
+  background-color: rgba(17, 140, 255, 1);
+}
+.player_1{
+  background-color: rgb(51, 153, 102);
+}
+.player_2{
+  background-color: rgb(255, 102, 102);
+}
+.player_3{
+  background-color: rgb(102, 102, 51);
+}
+.player_4{
+  background-color: rgb(102, 102, 153);
+}
+.player_5{
+  background-color: rgb(102, 153, 153);
+}
+.player_6{
+  background-color: rgb(255, 153, 51);
+}
+.player_7{
+  background-color: rgb(255, 102, 255);
+}

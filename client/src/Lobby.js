@@ -215,7 +215,7 @@ function Lobby(props) {
           socket.emit("LobbyValues", {room: lobby, difficulty:difficulty, rounds:rounds})
         }
       }
-    }, [difficulty, rounds, flag]);
+    }, [lobby, difficulty, rounds, flag]);
 
 
     useEffect(() => {

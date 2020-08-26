@@ -7,7 +7,7 @@ import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
 
 // 
-//import 'font-awesome/css/font-awesome.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 
 // 
 import '../lobby_chat.css';
@@ -583,8 +583,8 @@ function Item(props) {
         {countdown == 0 ? "Start" : countdown}
       </div>)}
       <div className="text-center pt-2 pb-2">
-        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
-        <br></br>
+        {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
+        <br></br> */}
         <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
       </div>
     </div>
@@ -672,8 +672,8 @@ function Players(props) {
       { rounds !== 1 && gameWinner && <div className="pb-2"><p>{gameWinner.name} won the game</p></div>}
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
-        <div key={index} className="player">
-          <p>{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
+        <div key={index} className={`player player_${index}`}>
+          <p><i class="fa fa-user mr-1"></i>{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
         </div>
       ))}
     </div>

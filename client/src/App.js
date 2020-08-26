@@ -76,6 +76,14 @@ function App() {
 
 
   useEffect(() => {
+    let user = JSON.parse(localStorage.getItem('userInfo'));
+    if(user != undefined){
+      setUsername(user.name)
+    }
+  }, []);
+
+
+  useEffect(() => {
     //socket = io(ENDPOINT);
     socket.emit("helloMsg", { name: 'hello from home'});
     socket.on("lobbyEntered", function(data) {
@@ -165,6 +173,7 @@ function App() {
                               aria-describedby="inputGroupPrepend"
                               required
                               onChange={event => setUsername(event.target.value)}
+                              value={userName}
                             />
                             <Form.Control.Feedback type="invalid">
                               Please enter your name.

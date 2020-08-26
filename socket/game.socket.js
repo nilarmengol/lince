@@ -287,8 +287,12 @@ var ioEvents = function(IO) {
                     }
                 });
                 gameData[data.room].players = playersCopy;
+            //gameData[data.room].lobbyValues.roundsLeft =  gameData[data.room].lobbyValues.roundsLeft - 1;
+
             }
+            if(gameData[data.room].lobbyValues.roundsLeft){
             gameData[data.room].lobbyValues.roundsLeft =  gameData[data.room].lobbyValues.roundsLeft - 1;
+            }
             // let inGamePlayers = [];
             // let allPlayers = gameData[data.room].players;
             // console.log("getplayers", allPlayers);
@@ -346,7 +350,7 @@ var ioEvents = function(IO) {
             // 
             socketDetails[socket.id] = data.room;           
             var room = IO.adapter.rooms[data.room];
-            if (room && room.length >= 0) { 
+            if (room && room.length >= 0 && gameData[data.room] != undefined && data.room) { 
                 IO.in(data.room).emit('onGetPlayers_lobby', { players: gameData[data.room].players});              
             } else {
                 socket.emit('err', {
