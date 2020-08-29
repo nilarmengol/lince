@@ -28,6 +28,7 @@ import App from './App';
 import Lobby from './Lobby';
 import Transition from './Transition';
 import Game from "./screens/Game";
+import Game_public from "./screens/Game-public";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -38,6 +39,7 @@ ReactDOM.render(
           <Route path={"/transition"} component={Transition} />
           <Route path={"/lobby"} component={Lobby} />
           <Route path={"/game"} component={Game} />
+          <Route path={"/game-public"} component={Game_public} />
         </div>
     </Router>
   </React.StrictMode>,

@@ -28,6 +28,8 @@ function Transition(props) {
   const [players, setPlayers] = useState([]);
   const [lobby, setLobby] = useState("");
   const [redirection, setRedirection] = useState(false);
+  const [flag, setFlag] = useState("");
+
 
 
 
@@ -46,8 +48,14 @@ function Transition(props) {
         } else {
           url += "?lobby=" + data.room;
         }
+        // setUrlPath(url);
+        // setLobby(data.room);
+        localStorage.removeItem('inviteUrl');
+        localStorage.setItem('inviteUrl', url);
         setUrlPath(url);
         setLobby(data.room);
+        //setPlayerJoined(true);
+        localStorage.removeItem('userInfo');
       });
       socket.on("addPlayer", function(data) {
         console.log("addPlayer", data)
@@ -59,8 +67,10 @@ function Transition(props) {
         setRedirection(true);
         // localstorage
         if(localStorage.getItem('userInfo') == null){
-          localStorage.setItem('userInfo', data.currentPlayer);
+          //localStorage.setItem('userInfo', data.currentPlayer);
+          localStorage.setItem('userInfo', JSON.stringify(data.currentPlayer));
         }
+        
       });
 
     }
@@ -70,7 +80,7 @@ function Transition(props) {
         }
 
       if(redirection == true ){
-        history.push("/game?lobby="+lobby, {userName: userName, totalRounds: "10", players: players, difficulty:"2"});
+        history.push("/game-public?lobby="+lobby, {userName: userName, totalRounds: "10", players: players, difficulty:"2"});
       }
     }, [redirection]);
 
@@ -80,6 +90,22 @@ function Transition(props) {
             setTimeout(() => setCountdown(countdown - 1), 1000);
           }
       }, [countdown]);
+
+
+      useEffect(() => {
+        if(lobby){
+          localStorage.setItem('lobby', lobby);
+        }
+        if(lobby){
+          if(flag){
+            socket.emit("getLobbyValues", {room: lobby})
+          }else{
+            socket.emit("LobbyValues", {room: lobby, difficulty:3, rounds:20})
+          }
+        }
+    }, [lobby]);
+
+      
 
     return (
         

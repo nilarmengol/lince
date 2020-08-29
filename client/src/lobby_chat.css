@@ -291,3 +291,14 @@ input.textarea {
     cursor: pointer;
     background-color: white;
 }
+
+@media(max-width:999px){
+  .lobby_difficulty .list-group-horizontal {
+    flex-direction: column;
+  }
+}
+@media(max-width:768px){
+  .main_section{
+    flex-direction: column;
+  }
+}

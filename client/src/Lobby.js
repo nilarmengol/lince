@@ -266,7 +266,7 @@ function Lobby(props) {
       <h2>Gran Lince!</h2>
     </Jumbotron>
     <Container className="text-center">
-      <Row>
+      <Row className="main_section">
         <Col className="p-0 pr-1">
           <Card fluid="true">
               <Card.Header className="text-left"><h5>{adminName}'s Private Lobby</h5></Card.Header>
@@ -290,12 +290,12 @@ function Lobby(props) {
                         </Form.Group>
                     </Form>
                 </ListGroupItem>
-                <ListGroupItem className="text-left">
+                <ListGroupItem className="lobby_difficulty text-left">
                     <b> Difficulty </b>
                     <ListGroup horizontal>
-                        <ListGroup.Item><Button variant={difficulty == 1 ? "success" : "outline-success" } value="1" onClick={buttonClick} disabled={buttonDisabled}>Easy</Button></ListGroup.Item>
-                        <ListGroup.Item><Button variant={difficulty == 2 ? "warning" : "outline-warning" } value="2" onClick={buttonClick} disabled={buttonDisabled}>Medium</Button></ListGroup.Item>
-                        <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } value="3" onClick={buttonClick} disabled={buttonDisabled}>Hard</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 1 ? "success btn-block btn-lg" : "outline-success btn-block btn-lg" } value="1" onClick={buttonClick} disabled={buttonDisabled}>Easy</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 2 ? "warning btn-block btn-lg" : "outline-warning btn-block btn-lg" } value="2" onClick={buttonClick} disabled={buttonDisabled}>Medium</Button></ListGroup.Item>
+                        <ListGroup.Item><Button variant={difficulty == 3 ? "danger btn-block btn-lg" : "outline-danger btn-block btn-lg" } value="3" onClick={buttonClick} disabled={buttonDisabled}>Hard</Button></ListGroup.Item>
                         {/* <ListGroup.Item><Button variant={difficulty == 3 ? "danger" : "outline-danger" } onClick={event => setDifficulty("3")}>Hard</Button></ListGroup.Item> */}
                     </ListGroup>
                 </ListGroupItem>

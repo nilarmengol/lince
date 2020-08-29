@@ -123,10 +123,10 @@ function Game(props) {
         itemsIcons = itemsIcons_all.slice(0, 500);
         setItems(itemsIcons_all.slice(0, 500));
         break;
-      // default:
-      //   itemsIcons = itemsIcons_all.slice(0, 400);
-      //   setItems(itemsIcons_all.slice(0, 400));
-      //   break;
+      default:
+        itemsIcons = itemsIcons_all.slice(0, 400);
+        setItems(itemsIcons_all.slice(0, 400));
+        break;
     }
     itemsIcons ? setItems(itemsIcons) : setItems("");
     //if(totalRounds == roundsLeft){ setCountdown("3"); }
@@ -197,6 +197,8 @@ function Game(props) {
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
 
+    console.log("lobby", lobbyValue)
+
     if (lobbyValue) setLobby(lobbyValue);
     let url = window.location.href;
     if(lobby == ""){
@@ -226,8 +228,10 @@ function Game(props) {
   }, [players]);
 
   useEffect(() => {
+
     console.log("lobby", lobby);
     console.log("players", players);
+
     if(lobby && players.length == 0){
       socket.on("onGetPlayers", function(data) {
         setPlayers(data.players);
@@ -256,7 +260,9 @@ function Game(props) {
             //   setCountdown("-2");
             // }
             if(remove1 > 0 || data.playerRemoved == true){
-              setCountdown("-2")
+              //setCountdown("-2")
+              setCountdown("3");
+
             }else{
               setCountdown("3");
             }
