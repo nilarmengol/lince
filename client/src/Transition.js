@@ -36,7 +36,8 @@ function Transition(props) {
     const history = useHistory();
 
     function handlePlayClick() {
-      socket.emit("createGame", { name: userName });
+      socket.emit("availableRoom", { name: userName });
+      //socket.emit("createGame", { name: userName });
       //history.push("/game", {userName: userName});
 
       let url = window.location.href;
@@ -71,6 +72,20 @@ function Transition(props) {
           localStorage.setItem('userInfo', JSON.stringify(data.currentPlayer));
         }
         
+      });
+
+      // 
+      socket.on("roomAvail", function(data){
+        console.log("roomAvail", data)
+        console.log("roomAvail roomId", data.roomId)
+        if(data.roomId && data.roomId != undefined){
+          setLobby(data.roomId);
+          socket.emit("joinGame", { room: data.roomId, name: data.userName });
+        }else{
+          console.log("else block")
+          setLobby(data.roomId);
+          socket.emit("createGame", { name: data.userName, public: 1});
+        }
       });
 
     }

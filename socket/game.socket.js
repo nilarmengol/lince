@@ -3,6 +3,9 @@ var ioEvents = function(IO) {
 
     let gameData = {};
     let socketDetails = {};
+    let publicRooms = [];
+    let availableRooms = [];
+
 
     IO.on('connection', function(socket) {
       
@@ -25,6 +28,7 @@ var ioEvents = function(IO) {
             if(!sockets) {
                 console.log("delete gameData")
                 delete gameData[currentRoomId]; //clear room data when all players are gone
+                //delete socketDetails[currentRoomId];
             }
         });
         // socket.on("disconnect", () => {
@@ -93,6 +97,27 @@ var ioEvents = function(IO) {
 
         });
 
+        // check available room for public players
+
+        socket.on('availableRoom', function (data) {
+            availableRooms = [];
+            console.log("publicRooms", publicRooms);
+            publicRooms.forEach((room) => {
+                if(gameData[room]){
+                    let playerCount = gameData[room].players.length;
+                    if(playerCount < 2){
+                        availableRooms.push(room);
+                    }
+                }
+            })
+            console.log("availableRooms", availableRooms);
+            var randomRoom = availableRooms[Math.floor(Math.random() * availableRooms.length)];
+
+            socket.emit("roomAvail", {userName: data.name, roomId: randomRoom});
+            //availableRooms.push(roomId);
+            //IO.in(data.room).emit('onRefresh');
+        });
+
         /**
          * Create a new game room. 
          */
@@ -102,8 +127,12 @@ var ioEvents = function(IO) {
             // 
             socketDetails[socket.id] = roomId;
 
-            currentRoomId = roomId;
+            // 
+            if(data.public){
+                publicRooms.push(roomId) ;
+            }
 
+            currentRoomId = roomId;
             socket.emit('newGame', {
                 name: data.name,
                 room: roomId
