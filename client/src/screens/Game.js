@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import queryString_test from 'query-string'
 import "../styles/game.css";
@@ -665,6 +665,19 @@ function Players(props) {
     setUserMsg("");
     }
   }
+
+  const messagesEndRef = useRef()
+
+  const scrollToBottom = () => {
+    console.log("new message");
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+      if(allMsg !=""){
+        scrollToBottom();
+      }
+    },[allMsg]);
 
   return (
     <>

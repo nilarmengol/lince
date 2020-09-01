@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import queryString_test from 'query-string'
 import "../styles/game.css";
@@ -260,8 +260,8 @@ function Game(props) {
             //   setCountdown("-2");
             // }
             if(remove1 > 0 || data.playerRemoved == true){
-              //setCountdown("-2")
-              setCountdown("3");
+              setCountdown("-2")
+              //setCountdown("3");
 
             }else{
               setCountdown("3");
@@ -285,6 +285,11 @@ function Game(props) {
         if(data.refreshItem != undefined){
           //setRandomItem(items[data.refreshItem]);
           setRefreshItem(data.refreshItem)
+        }else{
+          const itemId = Math.floor(Math.random() * itemsIcons_all.length);
+          setRandomItem(itemsIcons_all[itemId]);
+          //socket.emit("newItem", { room: lobby, itemId: itemId });
+          //* socket.emit("refreshItem", { room: lobby, itemId: itemId });
         }
         // 
 
@@ -532,10 +537,11 @@ function Item(props) {
   }, [countdown, refreshItem]);
 
   useEffect(() => {
-    if(rounds/10 == 0){
+    console.log("obby test", lobby)
+    if(rounds/10 == 0 || lobby == ""){
       relocate();
     }
-  }, [rounds]);
+  }, [rounds, lobby]);
 
   const random = () => {
     setSuccess(false);
@@ -672,6 +678,19 @@ function Players(props) {
     }
   }
 
+  const messagesEndRef = useRef()
+
+  const scrollToBottom = () => {
+    console.log("new message");
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+      if(allMsg !=""){
+        scrollToBottom();
+      }
+    },[allMsg]);
+
   return (
     <>
       
@@ -710,6 +729,7 @@ function Players(props) {
                   </div>
                 </li>
               )}
+              <div ref={messagesEndRef} />
             </div>) : <></>
           ))}
         </ul>) : <></> }

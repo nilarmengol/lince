@@ -105,7 +105,7 @@ var ioEvents = function(IO) {
             publicRooms.forEach((room) => {
                 if(gameData[room]){
                     let playerCount = gameData[room].players.length;
-                    if(playerCount < 2){
+                    if(playerCount < 6){
                         availableRooms.push(room);
                     }
                 }
@@ -201,7 +201,7 @@ var ioEvents = function(IO) {
 
         socket.on('refreshItem', function (data) {
             console.log("refreshItem data", data)
-            if(data.room){
+            if(data.room && data.itemId){
                 console.log("refreshItem data if block", data)
                 gameData[data.room].refreshItem = data.itemId;
                 IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});

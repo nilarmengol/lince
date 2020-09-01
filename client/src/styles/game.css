@@ -201,3 +201,14 @@
 .player_7{
   background-color: rgb(255, 102, 255);
 }
+
+.chatWindow{
+  max-height: 460px;
+  overflow: scroll;
+}
+
+#chatList{
+  padding: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 10px;
+}
