@@ -7,7 +7,7 @@ import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
 
 // 
-import 'font-awesome/css/font-awesome.min.css';
+//import 'font-awesome/css/font-awesome.min.css';
 
 // 
 import '../lobby_chat.css';

@@ -79,6 +79,7 @@ function Transition(props) {
         console.log("roomAvail", data)
         console.log("roomAvail roomId", data.roomId)
         if(data.roomId && data.roomId != undefined){
+          console.log("if block")
           setLobby(data.roomId);
           socket.emit("joinGame", { room: data.roomId, name: data.userName });
         }else{
@@ -96,6 +97,7 @@ function Transition(props) {
 
       if(redirection == true ){
         history.push("/game-public?lobby="+lobby, {userName: userName, totalRounds: "10", players: players, difficulty:"2"});
+        //history.push("/test?lobby="+lobby, {userName: userName, totalRounds: "10", players: players, difficulty:"2"});
       }
     }, [redirection]);
 
