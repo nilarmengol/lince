@@ -35,10 +35,9 @@ import { useHistory } from "react-router-dom";
 //style={{backgroundImage: "url(" + Background + ")", backgroundRepeat: 'repeat'}}
 import io from "socket.io-client";
 //Deploy
-//const ENDPOINT = window.location.hostname;
+const ENDPOINT = window.location.hostname;
 //Local
-
-const ENDPOINT = "http://127.0.0.1:4001/";
+//const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
 function App() {

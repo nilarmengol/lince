@@ -16,7 +16,10 @@ import io from "socket.io-client";
 
 
 function Transition(props) {
-  const ENDPOINT = "http://127.0.0.1:4001/";
+  //deploy
+  const ENDPOINT = window.location.hostname;
+  //local
+  //const ENDPOINT = "http://127.0.0.1:4001/";
   // let socket;
   const socket = io(ENDPOINT);
   const [countdown, setCountdown] = useState("5");
