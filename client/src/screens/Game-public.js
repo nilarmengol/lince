@@ -24,8 +24,9 @@ import Modal from 'react-bootstrap/Modal';
 
 
 //Deploy
-
-const ENDPOINT = "http://127.0.0.1:4001/";
+const ENDPOINT = window.location.hostname;
+//Local
+//const ENDPOINT = "http://127.0.0.1:4001/";
 const socket = io(ENDPOINT);
 
 function Game(props) {
