@@ -196,6 +196,7 @@ var ioEvents = function(IO) {
         });
 
         socket.on('refresh', function (data) {
+            console.log("refresh items", data)
             IO.in(data.room).emit('onRefresh');
         });
 

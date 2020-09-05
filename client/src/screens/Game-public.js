@@ -132,7 +132,8 @@ function Game(props) {
     itemsIcons ? setItems(itemsIcons) : setItems("");
     //if(totalRounds == roundsLeft){ setCountdown("3"); }
     
-  }, [difficulty]);
+  }, [roundsLeft]);
+  //}, [difficulty]);
 
   useEffect(() => {
     let queryString = window.location.search;
@@ -260,7 +261,9 @@ function Game(props) {
             // }else{
             //   setCountdown("-2");
             // }
-            if(remove1 > 0 || data.playerRemoved == true){
+            
+            //if(remove1 > 0 || data.playerRemoved == true){
+            if(data.refreshItem != undefined || data.playerRemoved == true){
               setCountdown("-2")
               //setCountdown("3");
 
@@ -455,6 +458,7 @@ function Item(props) {
 
   useEffect(() => {
     socket.on("onRefresh", function(data) {
+      console.log("onRefresh res", data)
       let copyItems = [...items];
       let array = copyItems;
       let currentIndex = array.length;
@@ -481,6 +485,11 @@ function Item(props) {
     //   setRandomItem(itemsIcons[data.itemId]);
     // });
 
+
+  }, [items]);
+
+
+  useEffect(() => {
     socket.on("onRefreshItem", function(data) {
       setWinner("");
       setSuccess(false);
@@ -538,11 +547,27 @@ function Item(props) {
   }, [countdown, refreshItem]);
 
   useEffect(() => {
-    console.log("obby test", lobby)
-    if(rounds/10 == 0 || lobby == ""){
-      relocate();
+    console.log("obby test", roundsLeft)
+    if(parseInt(roundsLeft)/10 == 0 || roundsLeft == ""){
+      relocate(); 
+      // console.log("onRefresh res")
+      // let copyItems = [...items];
+      // let array = copyItems;
+      // let currentIndex = array.length;
+      // // While there remain elements to shuffle...
+      // while (0 !== currentIndex) {
+      //   // Pick a remaining element...
+      //   let randomIndex = Math.floor(Math.random() * currentIndex);
+      //   currentIndex -= 1;
+
+      //   // And swap it with the current element.
+      //   let temporaryValue = array[currentIndex];
+      //   array[currentIndex] = array[randomIndex];
+      //   array[randomIndex] = temporaryValue;
+      // }
+      // setItems(array);
     }
-  }, [rounds, lobby]);
+  }, [rounds, items]);
 
   const random = () => {
     setSuccess(false);
@@ -554,7 +579,9 @@ function Item(props) {
   };
 
   const relocate = () => {
-    socket.emit("refresh", { room: lobby });
+    if(lobby){
+      socket.emit("refresh", { room: lobby });
+    }
   };
 
   const refresh_image = () => {
