@@ -61,6 +61,12 @@ function Game(props) {
   const [temp, setTemp] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [refreshItem, setRefreshItem] = useState("");
+  const [randomImg, setRandomImg] = useState(false);
+
+  //
+  const [defaultImg, setDefaultImg] = useState(false);
+
+
 
   useEffect(() => {
     if(players){
@@ -80,6 +86,7 @@ function Game(props) {
       });
     }
   }, []);
+
 
   useEffect(() => {}, [success]);
 
@@ -109,30 +116,70 @@ function Game(props) {
     }
   }, [gameWinner]);
 
+
+
+  // useEffect(() => {
+  //   console.log("randomImg", randomImg)
+  //   console.log("randomImg lobby", lobby)
+
+  //   if(randomImg == true && lobby){
+  //     console.log("randomImg items", items)
+  //     socket.emit("setItems", {room: lobby, items: items})
+  //   }
+  // }, [lobby, randomImg]);
+
+
+
+
   useEffect(() => {
-    let itemsIcons = "";
-    switch (difficulty) {
-      case '1':
-        itemsIcons = itemsIcons_all.slice(0, 200);
-        setItems(itemsIcons_all.slice(0, 200));
-        break;
-      case '2':
-        itemsIcons = itemsIcons_all.slice(0, 300);
-        setItems(itemsIcons_all.slice(0, 300));
-        break;
-      case '3':
-        itemsIcons = itemsIcons_all.slice(0, 500);
-        setItems(itemsIcons_all.slice(0, 500));
-        break;
-      default:
-        itemsIcons = itemsIcons_all.slice(0, 400);
-        setItems(itemsIcons_all.slice(0, 400));
-        break;
-    }
-    itemsIcons ? setItems(itemsIcons) : setItems("");
+    if(defaultImg == true){
+      let itemsIcons = "";
+      switch (difficulty) {
+        case '1':
+          itemsIcons = itemsIcons_all.slice(0, 200);
+          //setItems(itemsIcons_all.slice(0, 200));
+          break;
+        case '2':
+          itemsIcons = itemsIcons_all.slice(0, 300);
+          //setItems(itemsIcons_all.slice(0, 300));
+          break;
+        case '3':
+          itemsIcons = itemsIcons_all.slice(0, 500);
+          //setItems(itemsIcons_all.slice(0, 500));
+          break;
+        default:
+          itemsIcons = itemsIcons_all.slice(0, 400);
+          //setItems(itemsIcons_all.slice(0, 400));
+          break;
+      }
+      itemsIcons ? setItems(itemsIcons) : setItems("");
+    }  
+
+    // if(itemsIcons){
+    //   console.log("test")
+    //   console.log("roundsLeft",roundsLeft)
+
+    //   if(parseInt(roundsLeft) % 10 == 0 || roundsLeft == ""){
+    //     let copyItems = [...itemsIcons];
+    //     let array = copyItems;
+    //     let currentIndex = array.length;
+    //     // While there remain elements to shuffle...
+    //     while (0 !== currentIndex) {
+    //       // Pick a remaining element...
+    //       let randomIndex = Math.floor(Math.random() * currentIndex);
+    //       currentIndex -= 1;
+
+    //       // And swap it with the current element.
+    //       let temporaryValue = array[currentIndex];
+    //       array[currentIndex] = array[randomIndex];
+    //       array[randomIndex] = temporaryValue;
+    //     }
+    //     setItems(array);
+    //   }
+    // }
     //if(totalRounds == roundsLeft){ setCountdown("3"); }
     
-  }, [roundsLeft]);
+  }, [difficulty, roundsLeft, lobby, defaultImg, randomImg]);
   //}, [difficulty]);
 
   useEffect(() => {
@@ -289,12 +336,11 @@ function Game(props) {
         if(data.refreshItem != undefined){
           //setRandomItem(items[data.refreshItem]);
           setRefreshItem(data.refreshItem)
-        }else{
-          const itemId = Math.floor(Math.random() * itemsIcons_all.length);
-          setRandomItem(itemsIcons_all[itemId]);
-          //socket.emit("newItem", { room: lobby, itemId: itemId });
-          //* socket.emit("refreshItem", { room: lobby, itemId: itemId });
         }
+        // }else{
+        //     const itemId = Math.floor(Math.random() * itemsIcons_all.length);
+        //     setRandomItem(itemsIcons_all[itemId]);
+        // }
         // 
 
       });
@@ -317,9 +363,31 @@ function Game(props) {
       let filteredArray = players.filter(item => item.id !== data.id);
       //setPlayers(filteredArray);
     });
-   
+
 
   }, [lobby]);
+
+
+  useEffect(() =>{
+
+    if(lobby){
+      socket.emit('getItems', {room:lobby});
+    }
+    socket.on("onGetItems", function(data) {
+      console.log("onGetItems", data);
+      if(data.items && data.items.length > 0){
+        console.log('items', data.items);
+        setDefaultImg(false);
+        setItems(data.items);
+        //setRefreshItem(data.refreshItem);
+        setRandomItem(data.items[data.refreshItem]);
+        
+      }else{
+        setDefaultImg(true);
+      }
+    });
+
+  }, [lobby, players])
 
 
   const copyToClipboard = () => {
@@ -383,6 +451,7 @@ function Game(props) {
           userName={userName}
           history={history}
           refreshItem={refreshItem}
+          setRandomImg={setRandomImg}
         />
         <Players
           players={players}
@@ -451,14 +520,15 @@ function Item(props) {
     difficulty,
     userName,
     players,
-    refreshItem
+    refreshItem,
+    setRandomImg
 
 
   } = props;
 
   useEffect(() => {
     socket.on("onRefresh", function(data) {
-      console.log("onRefresh res", data)
+      console.log("-----------------------onRefresh", data)
       let copyItems = [...items];
       let array = copyItems;
       let currentIndex = array.length;
@@ -468,13 +538,20 @@ function Item(props) {
         let randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex -= 1;
 
+        console.log("currentIndex", currentIndex)
+
         // And swap it with the current element.
         let temporaryValue = array[currentIndex];
         array[currentIndex] = array[randomIndex];
         array[randomIndex] = temporaryValue;
       }
       setItems(array);
+      setRandomImg(true);
+      console.log('array', array);
+      socket.emit("setItems", {room: data.room, items: array})
+
       setRefreshButtonDisabled(true);
+       
     });
 
     // socket.on("onNewItem", function(data) {
@@ -486,18 +563,19 @@ function Item(props) {
     // });
 
 
-  }, [items]);
+  }, [items, lobby, rounds, countdown]);
 
 
   useEffect(() => {
-    socket.on("onRefreshItem", function(data) {
-      setWinner("");
-      setSuccess(false);
-      setButtonDisabled(false);
-      setRefreshButtonDisabled(true);
-      setRandomItem(itemsIcons[data.itemId]);
-    });
-
+    if(countdown != "-2"){
+      socket.on("onRefreshItem", function(data) {
+        setWinner("");
+        setSuccess(false);
+        setButtonDisabled(false);
+        setRefreshButtonDisabled(true);
+        setRandomItem(itemsIcons[data.itemId]);
+      });
+    }
   }, [items]);
 
   useEffect(() => {
@@ -537,6 +615,7 @@ function Item(props) {
         if(countdown == 0 ){
           refresh_image();
         }
+
       }
     }else{
       console.log("refreshItem",refreshItem)
@@ -544,30 +623,45 @@ function Item(props) {
         setRandomItem(itemsIcons[refreshItem]);
       }
     }
-  }, [countdown, refreshItem]);
+  }, [countdown, refreshItem, items]);
 
   useEffect(() => {
-    console.log("obby test", roundsLeft)
-    if(parseInt(roundsLeft)/10 == 0 || roundsLeft == ""){
-      relocate(); 
-      // console.log("onRefresh res")
-      // let copyItems = [...items];
-      // let array = copyItems;
-      // let currentIndex = array.length;
-      // // While there remain elements to shuffle...
-      // while (0 !== currentIndex) {
-      //   // Pick a remaining element...
-      //   let randomIndex = Math.floor(Math.random() * currentIndex);
-      //   currentIndex -= 1;
 
-      //   // And swap it with the current element.
-      //   let temporaryValue = array[currentIndex];
-      //   array[currentIndex] = array[randomIndex];
-      //   array[randomIndex] = temporaryValue;
-      // }
-      // setItems(array);
+    console.log("refreshItem test",refreshItem)
+    if(refreshItem != ""){  
+      setRandomItem(itemsIcons[refreshItem]);
     }
-  }, [rounds, items]);
+  }, [refreshItem]);
+
+  // useEffect(() => {
+  //   console.log("obby test", roundsLeft)
+  //   if((parseInt(roundsLeft) % 10 == 0 || roundsLeft == "") && lobby){
+  //     console.log("------------------if block-------------")
+  //     //relocate(); 
+  //     let copyItems = [...items];
+  //     let array = copyItems;
+  //     let currentIndex = array.length;
+  //     // While there remain elements to shuffle...
+  //     while (0 !== currentIndex) {
+  //       // Pick a remaining element...
+  //       let randomIndex = Math.floor(Math.random() * currentIndex);
+  //       currentIndex -= 1;
+
+  //       console.log("currentIndex", currentIndex)
+
+  //       // And swap it with the current element.
+  //       let temporaryValue = array[currentIndex];
+  //       array[currentIndex] = array[randomIndex];
+  //       array[randomIndex] = temporaryValue;
+  //     }
+  //     setItems(array);
+  //     setRandomImg(true);
+  //     console.log('array', array);
+  //     socket.emit("setItems", {room: lobby, items: array})
+
+  //     setRefreshButtonDisabled(true);
+  //   }
+  // }, [lobby, roundsLeft]);
 
   const random = () => {
     setSuccess(false);
@@ -625,8 +719,8 @@ function Item(props) {
         {countdown == 0 ? "Start" : countdown}
       </div>)}
       <div className="text-center pt-2 pb-2">
-        {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
-        <br></br> */}
+        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={relocate}><i class="fa fa-arrow-left mr-1"></i> Refresh</button>
+        <br></br>
         <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
       </div>
     </div>
@@ -854,7 +948,7 @@ function Boardgame(props) {
           onClick={roundsLeft > 0 && !gameWinner ? () => score(item) : () => endMatch()}
           disabled
         >
-          <img className="square " src={item} alt={item} />
+          <img className={`square ${index}`} src={item} alt={item} />
         </div>
       ))}
     </div>

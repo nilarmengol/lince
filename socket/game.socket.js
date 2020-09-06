@@ -197,7 +197,7 @@ var ioEvents = function(IO) {
 
         socket.on('refresh', function (data) {
             console.log("refresh items", data)
-            IO.in(data.room).emit('onRefresh');
+            IO.in(data.room).emit('onRefresh', {room:data.room});
         });
 
         socket.on('refreshItem', function (data) {
@@ -206,6 +206,28 @@ var ioEvents = function(IO) {
                 console.log("refreshItem data if block", data)
                 gameData[data.room].refreshItem = data.itemId;
                 IO.in(data.room).emit('onRefreshItem', { itemId: data.itemId});
+            }
+        });
+
+
+        socket.on("setItems", function(data){
+            //gameData[data.room].items = [];
+            console.log("setItems", data);
+            gameData[data.room].items = data.items;
+            if(data.room && gameData[data.room].items != undefined){
+                let items = gameData[data.room].items
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem });
+            }
+        });
+
+        socket.on("getItems", function(data){
+            //gameData[data.room].items = [];
+            console.log("getItems", data);
+            if(data.room && gameData[data.room].items != undefined){
+                let items = gameData[data.room].items
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
+            }else{
+                IO.in(data.room).emit('onGetItems', {items: null});
             }
         });
 
@@ -338,6 +360,9 @@ var ioEvents = function(IO) {
             // });
 
             IO.in(data.room).emit('onUpdateBoard', { room: data.room, winner: data.winner, allPlayers:gameData[data.room].players });
+
+            //IO.in(data.room).emit('onGetPlayers', { players: gameData[data.room].players, playerRemoved: true, lobbyValues: gameData[data.room].lobbyValues, refreshItem:gameData[data.room].refreshItem});   
+
 
         });
 
