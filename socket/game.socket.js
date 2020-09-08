@@ -9,7 +9,9 @@ var ioEvents = function(IO) {
 
     IO.on('connection', function(socket) {
       
-        console.log('connect to /game nsp', gameData);
+        //console.log('connect to /game nsp', gameData);
+
+        console.log('connect to /game nsp');
 
         let currentRoomId;
         
@@ -213,7 +215,10 @@ var ioEvents = function(IO) {
         socket.on("setItems", function(data){
             //gameData[data.room].items = [];
             console.log("setItems", data);
-            gameData[data.room].items = data.items;
+
+            if(data.room && gameData[data.room].items == undefined){
+                gameData[data.room].items = data.items;
+            }
             if(data.room && gameData[data.room].items != undefined){
                 let items = gameData[data.room].items
                 IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem });
@@ -223,10 +228,15 @@ var ioEvents = function(IO) {
         socket.on("getItems", function(data){
             //gameData[data.room].items = [];
             console.log("getItems", data);
-            if(data.room && gameData[data.room].items != undefined){
+            if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 == 0 || data.round == 1){
                 let items = gameData[data.room].items
                 IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
-            }else{
+            }
+            else if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0){
+                let items = gameData[data.room].items
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
+            }
+            else{
                 IO.in(data.room).emit('onGetItems', {items: null});
             }
         });

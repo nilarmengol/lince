@@ -64,7 +64,7 @@ function Game(props) {
   const [randomImg, setRandomImg] = useState(false);
 
   //
-  const [defaultImg, setDefaultImg] = useState(false);
+  const [defaultImg, setDefaultImg] = useState(true);
 
 
 
@@ -153,33 +153,45 @@ function Game(props) {
           break;
       }
       itemsIcons ? setItems(itemsIcons) : setItems("");
+
+      if(itemsIcons){
+        if((parseInt(roundsLeft) % 10 == 0 || roundsLeft == "") && lobby){
+
+
+          const itemId = Math.floor(Math.random() * itemsIcons.length);
+          setRandomItem(itemsIcons[itemId]);
+          socket.emit("newItem", { room: lobby, itemId: itemId });
+
+
+          console.log("-----------------------onRefresh--------")
+          let copyItems = [...itemsIcons];
+          let array = copyItems;
+          let currentIndex = array.length;
+          // While there remain elements to shuffle...
+          while (0 !== currentIndex) {
+            // Pick a remaining element...
+            let randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            console.log("currentIndex", currentIndex)
+
+            // And swap it with the current element.
+            let temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+          }
+          setItems(array);
+          setRandomImg(true);
+          console.log('array', array);
+          socket.emit("setItems", {room: lobby, items: array})
+        }
+      }
+
     }  
-
-    // if(itemsIcons){
-    //   console.log("test")
-    //   console.log("roundsLeft",roundsLeft)
-
-    //   if(parseInt(roundsLeft) % 10 == 0 || roundsLeft == ""){
-    //     let copyItems = [...itemsIcons];
-    //     let array = copyItems;
-    //     let currentIndex = array.length;
-    //     // While there remain elements to shuffle...
-    //     while (0 !== currentIndex) {
-    //       // Pick a remaining element...
-    //       let randomIndex = Math.floor(Math.random() * currentIndex);
-    //       currentIndex -= 1;
-
-    //       // And swap it with the current element.
-    //       let temporaryValue = array[currentIndex];
-    //       array[currentIndex] = array[randomIndex];
-    //       array[randomIndex] = temporaryValue;
-    //     }
-    //     setItems(array);
-    //   }
-    // }
-    //if(totalRounds == roundsLeft){ setCountdown("3"); }
     
-  }, [difficulty, roundsLeft, lobby, defaultImg, randomImg]);
+  }, [lobby, defaultImg]);
+  //}, [difficulty, lobby, defaultImg, randomImg]);
+
   //}, [difficulty]);
 
   useEffect(() => {
@@ -370,12 +382,12 @@ function Game(props) {
 
   useEffect(() =>{
 
-    if(lobby){
-      socket.emit('getItems', {room:lobby});
+    if(lobby && rounds){
+      socket.emit('getItems', {room:lobby, round:rounds});
     }
     socket.on("onGetItems", function(data) {
       console.log("onGetItems", data);
-      if(data.items && data.items.length > 0){
+      if(data.items && data.items.length > 0 || data.items== null){
         console.log('items', data.items);
         setDefaultImg(false);
         setItems(data.items);
@@ -527,32 +539,32 @@ function Item(props) {
   } = props;
 
   useEffect(() => {
-    socket.on("onRefresh", function(data) {
-      console.log("-----------------------onRefresh", data)
-      let copyItems = [...items];
-      let array = copyItems;
-      let currentIndex = array.length;
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
-        // Pick a remaining element...
-        let randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
+    // socket.on("onRefresh", function(data) {
+    //   console.log("-----------------------onRefresh", data)
+    //   let copyItems = [...items];
+    //   let array = copyItems;
+    //   let currentIndex = array.length;
+    //   // While there remain elements to shuffle...
+    //   while (0 !== currentIndex) {
+    //     // Pick a remaining element...
+    //     let randomIndex = Math.floor(Math.random() * currentIndex);
+    //     currentIndex -= 1;
 
-        console.log("currentIndex", currentIndex)
+    //     console.log("currentIndex", currentIndex)
 
-        // And swap it with the current element.
-        let temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-      }
-      setItems(array);
-      setRandomImg(true);
-      console.log('array', array);
-      socket.emit("setItems", {room: data.room, items: array})
+    //     // And swap it with the current element.
+    //     let temporaryValue = array[currentIndex];
+    //     array[currentIndex] = array[randomIndex];
+    //     array[randomIndex] = temporaryValue;
+    //   }
+    //   setItems(array);
+    //   setRandomImg(true);
+    //   console.log('array', array);
+    //   socket.emit("setItems", {room: data.room, items: array})
 
-      setRefreshButtonDisabled(true);
+    //   setRefreshButtonDisabled(true);
        
-    });
+    // });
 
     // socket.on("onNewItem", function(data) {
     //   setWinner("");

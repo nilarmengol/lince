@@ -116,14 +116,14 @@ function Transition(props) {
         if(lobby){
           localStorage.setItem('lobby', lobby);
         }
-        if(lobby){
-          if(flag){
-            socket.emit("getLobbyValues", {room: lobby})
-          }else{
-            socket.emit("LobbyValues", {room: lobby, difficulty:3, rounds:20})
-          }
+        if(lobby && countdown == -1){
+          // if(flag){
+          //   socket.emit("getLobbyValues", {room: lobby})
+          // }else{
+            socket.emit("LobbyValues", {room: lobby, difficulty:1, rounds:20})
+          // }
         }
-    }, [lobby]);
+    }, [lobby, countdown]);
 
       
 
