@@ -146,6 +146,7 @@ var ioEvents = function(IO) {
             }
             gameData[roomId] = {};
             gameData[roomId].players = new Array();
+            gameData[roomId].typing = new Array();
             // gameData[roomId].lobbyValues = new Array();
             gameData[roomId].players.push({
                 name: data.name,
@@ -333,6 +334,24 @@ var ioEvents = function(IO) {
         socket.on('groupMsg', function (data) {
             IO.in(data.room).emit('onGroupMsg', {room :data.room, name: data.name, message: data.message});
         });
+
+        socket.on('typing', function(data){
+            console.log("typing", data);
+            if(gameData[data.room].typing.indexOf(data.userName) === -1) {
+                gameData[data.room].typing.push(data.userName)
+            }
+            IO.in(data.room).emit('notifyTyping', {typing:gameData[data.room].typing})
+        });
+
+        socket.on('stopTyping', function(data){
+            console.log("stopTyping", data);
+            if(gameData[data.room].typing.indexOf(data.userName) != -1) {
+                gameData[data.room].typing.pop(data.userName)
+            }
+            IO.in(data.room).emit('notifyTyping', {typing:gameData[data.room].typing})
+        });
+
+
 
         socket.on('newItem', function (data) {
             IO.in(data.room).emit('onNewItem', { itemId: data.itemId});

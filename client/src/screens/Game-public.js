@@ -6,7 +6,7 @@ import { itemsIcons_all } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
 
-// 
+
 //import 'font-awesome/css/font-awesome.min.css';
 
 // 
@@ -731,8 +731,8 @@ function Item(props) {
         {countdown == 0 ? "Start" : countdown}
       </div>)}
       <div className="text-center pt-2 pb-2">
-        <button className="btn btn-secondary  btn-rounded btn-sm" onClick={relocate}><i class="fa fa-arrow-left mr-1"></i> Refresh</button>
-        <br></br>
+        {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={relocate}><FaBeer /> Refresh</button>
+        <br></br> */}
         <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
       </div>
     </div>
@@ -794,11 +794,17 @@ function MyVerticallyCenteredModal(props) {
 function Players(props) {
   const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, totalRounds, setUserMsg, userMsg, userName, allMsg, rounds } = props;
 
+  const [currentlyTyping, setCurrentlyTyping ] = useState([]);
 
   useEffect(() => {
       if(lobby){
         socket.emit("getPlayers", { room: lobby});
       }
+      socket.on('notifyTyping',function(data){
+        console.log("notifyTyping", data);
+        var result = data.typing.filter(name => name != userName);
+        setCurrentlyTyping(result);
+      });
   }, [lobby]);
 
   function handleChange(e) {
@@ -818,6 +824,100 @@ function Players(props) {
     console.log("new message");
     messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
   }
+
+  let user;
+    if(localStorage.getItem('userInfo') != null){
+      user = JSON.parse(localStorage.getItem('userInfo'));
+    }
+
+
+  // const msgKeyDown = () =>{
+  //   console.log("typing", userName);
+  //   socket.emit('typing', {room:lobby, userName:userName});
+
+  //   socket.on('notifyTyping',function(data){
+  //     console.log("notifyTyping", data);
+  //     if (data.typing.length > 0) {
+  //       if (!data.typing.some(element => element === userName)) {
+  //         data.typing.push(userName);
+  //         }
+  //     } else {
+  //       data.typing.push(userName);
+  //     }
+
+  //     setCurrentlyTyping(data.typing);
+  //   });
+  // }
+
+ 
+
+  // const msgKeyUp = () =>{
+  //   console.log("typing up", userName);
+  //   // setTimeout(function(){
+  //   // socket.emit('stopTyping', {room:lobby, userName:userName});
+  //   // }, 3000);
+
+  //   // socket.on('notifyStopTyping',function(data){
+  //   //   console.log("notifyTyping", data);
+  //   //   setCurrentlyTyping(data.typing);
+  //   // });
+  // }
+
+  var timeout;
+
+  function timeoutFunction() {
+    socket.emit('stopTyping', {room:lobby, userName:userName});
+    // socket.on('notifyTyping',function(data){
+    //   console.log("notifyTyping", data);
+    //   setCurrentlyTyping(data.typing);
+    // });
+  }
+
+  const msgKeyDown = () =>{
+    console.log("typing", userName);
+    socket.emit('typing', {room:lobby, userName:userName});
+
+    clearTimeout(timeout);
+    timeout = setTimeout(timeoutFunction, 2000);
+
+    // socket.on('notifyTyping',function(data){
+    //   console.log("notifyTyping", data);
+    //   setCurrentlyTyping(data.typing);
+    // });
+  }
+
+
+  const msgKeyUp = () =>{
+    console.log("typing up", userName);
+    // setTimeout(function(){
+    // socket.emit('stopTyping', {room:lobby, userName:userName});
+    // }, 3000);
+
+    // socket.on('notifyStopTyping',function(data){
+    //   console.log("notifyTyping", data);
+    //   setCurrentlyTyping(data.typing);
+    // });
+  }
+
+  let typingText = '';
+  if (currentlyTyping.length === 1) {
+  typingText = `${currentlyTyping[0]} is typing `;
+  } else if (currentlyTyping.length === 2) {
+  typingText = `${currentlyTyping[0]} and ${currentlyTyping[1]} are typing `;
+  } else if (currentlyTyping.length > 2) {
+  typingText = `Several people are typing `;
+  } else {
+  typingText = '';
+  }
+
+  const typingAnimation = (
+    <React.Fragment>
+    <span className='typing-dot'></span>
+    <span className='typing-dot'></span>
+    <span className='typing-dot'></span>
+    </React.Fragment>
+  );
+  
 
   useEffect(() => {
       if(allMsg !=""){
@@ -845,6 +945,7 @@ function Players(props) {
       <div className="chatWindow">
         {allMsg != "" ? (
         <ul className="chat" id="chatList">
+          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
           {allMsg.map(data => (
             allMsg.length > 0 ? (
             <div>
@@ -866,16 +967,24 @@ function Players(props) {
               <div ref={messagesEndRef} />
             </div>) : <></>
           ))}
-        </ul>) : <></> }
+        </ul>) : (
+        <ul className="chat" id="chatList">
+          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+          </ul>) 
+          }
         <div className="chatInputWrapper">
           <form >
             <div className="message_input ">
+              {/* <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span> */}
               <input
+                id="message-box"
                 className="textarea input "
                 type="text"
                 placeholder="Enter your message..."
                 value={userMsg}
                 onChange={handleChange}
+                onKeyDown={msgKeyDown}
+                onKeyUp={msgKeyUp}
               />
               <span className="message_submit" >
                 <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} />
