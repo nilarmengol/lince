@@ -217,7 +217,7 @@ var ioEvents = function(IO) {
             //gameData[data.room].items = [];
             console.log("setItems", data);
 
-            if(data.room && gameData[data.room].items == undefined){
+            if(data.room && gameData[data.room].items == undefined || parseInt(data.round) % 10 == 0){
                 gameData[data.room].items = data.items;
             }
             if(data.room && gameData[data.room].items != undefined){
@@ -229,7 +229,7 @@ var ioEvents = function(IO) {
         socket.on("getItems", function(data){
             //gameData[data.room].items = [];
             console.log("getItems", data);
-            if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 == 0 || data.round == 1){
+            if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0 || data.round == 1){
                 let items = gameData[data.room].items
                 IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
             }

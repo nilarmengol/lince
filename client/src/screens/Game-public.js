@@ -9,6 +9,12 @@ import io from "socket.io-client";
 
 //import 'font-awesome/css/font-awesome.min.css';
 
+//import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import { faCoffee, FaUser } from '@fortawesome/free-solid-svg-icons'
+//import fontawesome from '@fortawesome/fontawesome'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faCoffee, faUser } from '@fortawesome/free-solid-svg-icons'
+
 // 
 import '../lobby_chat.css';
 import * as Icon from 'react-bootstrap-icons';
@@ -152,12 +158,18 @@ function Game(props) {
           //setItems(itemsIcons_all.slice(0, 400));
           break;
       }
-      itemsIcons ? setItems(itemsIcons) : setItems("");
+      //itemsIcons ? setItems(itemsIcons) : setItems("");
 
-      if(itemsIcons){
-        if((parseInt(roundsLeft) % 10 == 0 || roundsLeft == "") && lobby){
-
-
+      if(itemsIcons && players.length > 0){
+        // (parseInt(roundsLeft) % 10 == 0 || roundsLeft == "") && 
+        let user;
+        if(localStorage.getItem('userInfo') != null){
+          user = JSON.parse(localStorage.getItem('userInfo'));
+        }
+        console.log("user", user);
+        console.log("player", players);
+        //if(players.length > 0 && user.id == players[0].id){
+        if(lobby && user.id == players[0].id){
           const itemId = Math.floor(Math.random() * itemsIcons.length);
           setRandomItem(itemsIcons[itemId]);
           socket.emit("newItem", { room: lobby, itemId: itemId });
@@ -183,13 +195,13 @@ function Game(props) {
           setItems(array);
           setRandomImg(true);
           console.log('array', array);
-          socket.emit("setItems", {room: lobby, items: array})
+          socket.emit("setItems", {room: lobby, items: array, round:rounds})
         }
       }
 
     }  
     
-  }, [lobby, defaultImg]);
+  }, [lobby, defaultImg, players]);
   //}, [difficulty, lobby, defaultImg, randomImg]);
 
   //}, [difficulty]);
@@ -387,7 +399,7 @@ function Game(props) {
     }
     socket.on("onGetItems", function(data) {
       console.log("onGetItems", data);
-      if(data.items && data.items.length > 0 || data.items== null){
+      if(data.items && data.items.length > 0 || data.items != null){
         console.log('items', data.items);
         setDefaultImg(false);
         setItems(data.items);
@@ -731,9 +743,9 @@ function Item(props) {
         {countdown == 0 ? "Start" : countdown}
       </div>)}
       <div className="text-center pt-2 pb-2">
-        {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={relocate}><FaBeer /> Refresh</button>
+        {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={relocate}><FontAwesomeIcon icon={faCoffee} /> Refresh</button>
         <br></br> */}
-        <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
+        <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><FontAwesomeIcon icon={faArrowLeft} /> Leave Game</button>
       </div>
     </div>
   );
@@ -934,7 +946,7 @@ function Players(props) {
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
         <div key={index} className={`player player_${index}`}>
-          <p><i class="fa fa-user mr-1"></i>{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
+          <p><FontAwesomeIcon icon={faUser} className="mr-1" />{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
         </div>
       ))}
     </div>
