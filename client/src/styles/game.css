@@ -104,12 +104,17 @@
 }
 
 .boardgame {
-  border: silver 1px solid;
+  /* border: silver 1px solid; */
   margin: 0 20px;
   display: flex;
   justify-content: center;
   width: 75%;
   height: 100%;
+  flex-direction: column;
+}
+
+.boardgame .items{
+  border: silver 1px solid;
 }
 
 .square {

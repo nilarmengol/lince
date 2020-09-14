@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import {Link } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 import queryString_test from 'query-string'
 import "../styles/game.css";
@@ -8,12 +9,8 @@ import io from "socket.io-client";
 
 
 //import 'font-awesome/css/font-awesome.min.css';
-
-//import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import { faCoffee, FaUser } from '@fortawesome/free-solid-svg-icons'
-//import fontawesome from '@fortawesome/fontawesome'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faCoffee, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faLocationArrow, faUser } from '@fortawesome/free-solid-svg-icons'
 
 // 
 import '../lobby_chat.css';
@@ -446,7 +443,13 @@ function Game(props) {
           setTemp={setTemp}
           temp={temp}
         />
+        <Container>
+          <Row className="mt-3">
+            <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
+          </Row>
+        </Container>
       </div>
+      
       <div className="selections block">
         <Item
           setItems={setItems}
@@ -510,6 +513,7 @@ function Game(props) {
           setwinner={setWinner}
           setsuccess={setSuccess}
           setlobby={setLobby}
+          history={history}
         />
 
         <br />
@@ -753,7 +757,7 @@ function Item(props) {
 
 
 function MyVerticallyCenteredModal(props) {
-  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby} = props;
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history} = props;
 
   useEffect(() => {
     if(lobby){
@@ -774,7 +778,9 @@ function MyVerticallyCenteredModal(props) {
   }  
 
   const leaveGameBtn = () => {
-    console.log("Leave Game")
+    let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+    socket.emit("leaveGame", { id: currentPlayer.id});
+    history.push("/");
   } 
 
   return (
@@ -823,7 +829,8 @@ function Players(props) {
     setUserMsg(e.target.value);
   }
 
-  function handleSubmit() {
+  function handleSubmit(e) {
+    e.preventDefault();
     if(userMsg){
     socket.emit("groupMsg", { room: lobby,name: userName, message: userMsg});
     setUserMsg("");
@@ -985,7 +992,7 @@ function Players(props) {
           </ul>) 
           }
         <div className="chatInputWrapper">
-          <form >
+          <form onSubmit={handleSubmit}>
             <div className="message_input ">
               {/* <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span> */}
               <input
@@ -999,7 +1006,8 @@ function Players(props) {
                 onKeyUp={msgKeyUp}
               />
               <span className="message_submit" >
-                <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} />
+                {/* <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} /> */}
+                <FontAwesomeIcon icon={faLocationArrow} className="mt-8" color="#007bff" type="submit" onClick={handleSubmit}></FontAwesomeIcon>
                 </span>
             </div>
           </form>

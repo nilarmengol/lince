@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import {Link } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 import queryString_test from 'query-string'
 import "../styles/game.css";
@@ -8,7 +9,8 @@ import io from "socket.io-client";
 
 // 
 //import 'font-awesome/css/font-awesome.min.css';
-
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faLocationArrow, faUser } from '@fortawesome/free-solid-svg-icons'
 
 // 
 import '../lobby_chat.css';
@@ -62,6 +64,10 @@ function Game(props) {
   const [countdown, setCountdown] = useState("");
   const [refreshItem, setRefreshItem] = useState("");
 
+  // 
+  const [randomImg, setRandomImg] = useState(false);
+  const [defaultImg, setDefaultImg] = useState(true);
+
   useEffect(() => {
     if(players){
       socket.on("onUpdateBoard", function(data) {
@@ -109,30 +115,97 @@ function Game(props) {
     }
   }, [gameWinner]);
 
-  useEffect(() => {
-    let itemsIcons = "";
-    switch (difficulty) {
-      case '1':
-        itemsIcons = itemsIcons_all.slice(0, 200);
-        setItems(itemsIcons_all.slice(0, 200));
-        break;
-      case '2':
-        itemsIcons = itemsIcons_all.slice(0, 300);
-        setItems(itemsIcons_all.slice(0, 300));
-        break;
-      case '3':
-        itemsIcons = itemsIcons_all.slice(0, 500);
-        setItems(itemsIcons_all.slice(0, 500));
-        break;
-      // default:
-      //   itemsIcons = itemsIcons_all.slice(0, 400);
-      //   setItems(itemsIcons_all.slice(0, 400));
-      //   break;
-    }
-    itemsIcons ? setItems(itemsIcons) : setItems("");
-    //if(totalRounds == roundsLeft){ setCountdown("3"); }
+  // useEffect(() => {
+  //   let itemsIcons = "";
+  //   switch (difficulty) {
+  //     case '1':
+  //       itemsIcons = itemsIcons_all.slice(0, 200);
+  //       setItems(itemsIcons_all.slice(0, 200));
+  //       break;
+  //     case '2':
+  //       itemsIcons = itemsIcons_all.slice(0, 300);
+  //       setItems(itemsIcons_all.slice(0, 300));
+  //       break;
+  //     case '3':
+  //       itemsIcons = itemsIcons_all.slice(0, 500);
+  //       setItems(itemsIcons_all.slice(0, 500));
+  //       break;
+  //     // default:
+  //     //   itemsIcons = itemsIcons_all.slice(0, 400);
+  //     //   setItems(itemsIcons_all.slice(0, 400));
+  //     //   break;
+  //   }
+  //   itemsIcons ? setItems(itemsIcons) : setItems("");
+  //   //if(totalRounds == roundsLeft){ setCountdown("3"); }
     
-  }, [difficulty]);
+  // }, [difficulty]);
+
+  useEffect(() => {
+    if(defaultImg == true && difficulty){
+      let itemsIcons = "";
+      console.log("------------difficulty", difficulty)
+      switch (difficulty) {
+        case '1':
+          itemsIcons = itemsIcons_all.slice(0, 200);
+          //setItems(itemsIcons_all.slice(0, 200));
+          break;
+        case '2':
+          itemsIcons = itemsIcons_all.slice(0, 300);
+          //setItems(itemsIcons_all.slice(0, 300));
+          break;
+        case '3':
+          itemsIcons = itemsIcons_all.slice(0, 500);
+          //setItems(itemsIcons_all.slice(0, 500));
+          break;
+        default:
+          itemsIcons = itemsIcons_all.slice(0, 400);
+          //setItems(itemsIcons_all.slice(0, 400));
+          break;
+      }
+      //itemsIcons ? setItems(itemsIcons) : setItems("");
+
+      if(itemsIcons && players.length > 0){
+        // (parseInt(roundsLeft) % 10 == 0 || roundsLeft == "") && 
+        let user;
+        if(localStorage.getItem('userInfo') != null){
+          user = JSON.parse(localStorage.getItem('userInfo'));
+        }
+        console.log("user", user);
+        console.log("player", players);
+        //if(players.length > 0 && user.id == players[0].id){
+        if(lobby && user.id == players[0].id){
+          const itemId = Math.floor(Math.random() * itemsIcons.length);
+          setRandomItem(itemsIcons[itemId]);
+          socket.emit("newItem", { room: lobby, itemId: itemId });
+
+
+          console.log("-----------------------onRefresh--------")
+          let copyItems = [...itemsIcons];
+          let array = copyItems;
+          let currentIndex = array.length;
+          // While there remain elements to shuffle...
+          while (0 !== currentIndex) {
+            // Pick a remaining element...
+            let randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            console.log("currentIndex", currentIndex)
+
+            // And swap it with the current element.
+            let temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+          }
+          setItems(array);
+          setRandomImg(true);
+          console.log('array', array);
+          socket.emit("setItems", {room: lobby, items: array, round:rounds})
+        }
+      }
+
+    }  
+    
+  }, [lobby, defaultImg, players]);
 
   useEffect(() => {
     let queryString = window.location.search;
@@ -140,49 +213,12 @@ function Game(props) {
     const urlParams = new URLSearchParams(queryString);
     const lobbyValue = urlParams.get("lobby");
 
-    // if(props.location.state.totalRounds === undefined){
-    //     history.push("/");
-    //   }
-    // if(props.location.state.totalRounds != undefined){
-    //   setTotalRounds(props.location.state.totalRounds);
-    //   setRoundsLeft(props.location.state.totalRounds);
-    // }
-    // if(props.location.state.difficulty != undefined && props.location.state.difficulty !==""){
-    //   setDifficulty(props.location.state.difficulty);
-    // }
-    
-    //const difficulty = props.location.state.difficulty;
-    
-    // let itemsIcons = "";
-    // switch (difficulty) {
-    //   case '1':
-    //     itemsIcons = itemsIcons_all.slice(0, 200);
-    //     setItems(itemsIcons_all.slice(0, 200));
-    //     break;
-    //   case '2':
-    //     itemsIcons = itemsIcons_all.slice(0, 300);
-    //     setItems(itemsIcons_all.slice(0, 300));
-    //     break;
-    //   case '3':
-    //     itemsIcons = itemsIcons_all.slice(0, 500);
-    //     setItems(itemsIcons_all.slice(0, 500));
-    //     break;
-    //   // default:
-    //   //   itemsIcons = itemsIcons_all.slice(0, 400);
-    //   //   setItems(itemsIcons_all.slice(0, 400));
-    //   //   break;
-    // }
-    // itemsIcons ? setItems(itemsIcons) : setItems("")
-
     socket.on("onGroupMsg", function(data) {
       let msg = {};
       msg.name = data.name;
       msg.message = data.message;
       setMsg(msg);
     });
-
-    //setCountdown("3");
-
 
   }, []);
 
@@ -308,6 +344,29 @@ function Game(props) {
   }, [lobby]);
 
 
+  
+  useEffect(() =>{
+
+    if(lobby && rounds){
+      socket.emit('getItems', {room:lobby, round:rounds});
+    }
+    socket.on("onGetItems", function(data) {
+      console.log("onGetItems", data);
+      if(data.items && data.items.length > 0 || data.items != null){
+        console.log('items', data.items);
+        setDefaultImg(false);
+        setItems(data.items);
+        //setRefreshItem(data.refreshItem);
+        setRandomItem(data.items[data.refreshItem]);
+        
+      }else{
+        setDefaultImg(true);
+      }
+    });
+
+  }, [lobby, players])
+
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(urlPath);
     setCopySuccess("Copied!");
@@ -340,6 +399,11 @@ function Game(props) {
           setTemp={setTemp}
           temp={temp}
         />
+        <Container>
+          <Row className="mt-3">
+            <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
+          </Row>
+        </Container>
       </div>
       <div className="selections block">
         <Item
@@ -403,6 +467,7 @@ function Game(props) {
           setwinner={setWinner}
           setsuccess={setSuccess}
           setlobby={setLobby}
+          history={history}
         />
 
         <br />
@@ -588,7 +653,7 @@ function Item(props) {
       <div className="text-center pt-2 pb-2">
         {/* <button className="btn btn-secondary  btn-rounded btn-sm" onClick={backToMain}><i class="fa fa-arrow-left mr-1"></i> Back to Main page</button>
         <br></br> */}
-        <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><i class="fa fa-arrow-left mr-1"></i> Leave Game</button>
+        <button className="btn btn-secondary  btn-rounded btn-sm mt-2" onClick={leaveGame}><FontAwesomeIcon icon={faArrowLeft} /> Leave Game</button>
       </div>
     </div>
   );
@@ -596,7 +661,7 @@ function Item(props) {
 
 
 function MyVerticallyCenteredModal(props) {
-  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby} = props;
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history} = props;
 
   useEffect(() => {
     if(lobby){
@@ -617,7 +682,9 @@ function MyVerticallyCenteredModal(props) {
   }  
 
   const leaveGameBtn = () => {
-    console.log("Leave Game")
+    let currentPlayer = JSON.parse(localStorage.getItem('userInfo'));
+    socket.emit("leaveGame", { id: currentPlayer.id});
+    history.push("/");
   } 
 
   return (
@@ -649,18 +716,26 @@ function MyVerticallyCenteredModal(props) {
 function Players(props) {
   const { players, success, lobby, winner, setPlayers, gameWinner, roundsLeft, totalRounds, setUserMsg, userMsg, userName, allMsg, rounds } = props;
 
+  const [currentlyTyping, setCurrentlyTyping ] = useState([]);
+
 
   useEffect(() => {
       if(lobby){
         socket.emit("getPlayers", { room: lobby});
       }
+      socket.on('notifyTyping',function(data){
+        console.log("notifyTyping", data);
+        var result = data.typing.filter(name => name != userName);
+        setCurrentlyTyping(result);
+      });
   }, [lobby]);
 
   function handleChange(e) {
     setUserMsg(e.target.value);
   }
 
-  function handleSubmit() {
+  function handleSubmit(e) {
+    e.preventDefault();
     if(userMsg){
     socket.emit("groupMsg", { room: lobby,name: userName, message: userMsg});
     setUserMsg("");
@@ -680,6 +755,49 @@ function Players(props) {
       }
     },[allMsg]);
 
+
+    var timeout;
+
+    function timeoutFunction() {
+      socket.emit('stopTyping', {room:lobby, userName:userName});
+    }
+  
+    const msgKeyDown = () =>{
+      console.log("typing", userName);
+      socket.emit('typing', {room:lobby, userName:userName});
+  
+      clearTimeout(timeout);
+      timeout = setTimeout(timeoutFunction, 2000);
+    }
+  
+  
+    const msgKeyUp = () =>{
+      console.log("typing up", userName);
+    }
+  
+    let typingText = '';
+    if (currentlyTyping.length === 1) {
+    typingText = `${currentlyTyping[0]} is typing `;
+    } else if (currentlyTyping.length === 2) {
+    typingText = `${currentlyTyping[0]} and ${currentlyTyping[1]} are typing `;
+    } else if (currentlyTyping.length > 2) {
+    typingText = `Several people are typing `;
+    } else {
+    typingText = '';
+    }
+  
+    const typingAnimation = (
+      <React.Fragment>
+      <span className='typing-dot'></span>
+      <span className='typing-dot'></span>
+      <span className='typing-dot'></span>
+      </React.Fragment>
+    );
+    
+
+
+
+
   return (
     <>
       
@@ -689,7 +807,7 @@ function Players(props) {
       {roundsLeft == 0 && winner.score == totalRounds/2 && <p>Match Draw</p>}
       {players.map((player, index) => (
         <div key={index} className={`player player_${index}`}>
-          <p><i class="fa fa-user mr-1"></i>{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
+          <p><FontAwesomeIcon icon={faUser} className="mr-1" />{player.name}</p> <p className="score">Score: {player.score} {player.rank >= 0 && "Rank: "+player.rank} </p>
         </div>
       ))}
     </div>
@@ -700,6 +818,7 @@ function Players(props) {
       <div className="chatWindow">
         {allMsg != "" ? (
         <ul className="chat" id="chatList">
+          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
           {allMsg.map(data => (
             allMsg.length > 0 ? (
             <div>
@@ -718,11 +837,14 @@ function Players(props) {
                   </div>
                 </li>
               )}
+              <div ref={messagesEndRef} />
             </div>) : <></>
           ))}
-        </ul>) : <></> }
+        </ul>) : <ul className="chat" id="chatList">
+          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+          </ul> }
         <div className="chatInputWrapper">
-          <form >
+          <form onSubmit={handleSubmit}>
             <div className="message_input ">
               <input
                 className="textarea input "
@@ -730,9 +852,12 @@ function Players(props) {
                 placeholder="Enter your message..."
                 value={userMsg}
                 onChange={handleChange}
+                onKeyDown={msgKeyDown}
+                onKeyUp={msgKeyUp}
               />
               <span className="message_submit" >
-                <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} />
+                {/* <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} /> */}
+                <FontAwesomeIcon icon={faLocationArrow} className="mt-8" color="#007bff" type="submit" onClick={handleSubmit}></FontAwesomeIcon>
                 </span>
             </div>
           </form>

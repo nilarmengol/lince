@@ -1,13 +1,3 @@
-// import React from "react";
-
-// import Game from "./screens/Game";
-
-// function App() {
-//   return <Game />;
-// }
-
-// export default App;
-
 import React, { useState, useEffect } from "react";
 // google adsense
 import AdSense from 'react-adsense';
@@ -28,7 +18,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import Form from 'react-bootstrap/Form';
 import Accordion from 'react-bootstrap/Accordion';
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 //import Background from './granlince.JPG'
 
@@ -153,7 +143,7 @@ function App() {
         </p>
       </Jumbotron>
       <Container className="text-center">
-        <Row>
+        <Row className="main_section">
           <Col className="p-0 pr-1">
           <Form noValidate validated={validated} onSubmit={createRoom}>
             <Card fluid="true">
@@ -297,6 +287,11 @@ function App() {
        
       </Container>
       
+      <Container>
+        <Row className="mt-3">
+          <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
+        </Row>
+      </Container>
       
     </Container>
  
