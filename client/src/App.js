@@ -227,8 +227,7 @@ function App() {
                 />   */}
                 <AdSense.Google
                   data-adtest="on"
-                  client='ca-pub-0000000000000000'
-                  slot='0000000000'
+                  client='ca-pub-4780603485802173'
                   style={{ display: 'block' }}
                   format='auto'
                   responsive='true'
