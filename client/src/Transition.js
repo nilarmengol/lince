@@ -35,8 +35,6 @@ function Transition(props) {
   const [flag, setFlag] = useState("");
 
 
-
-
     const history = useHistory();
 
     function handlePlayClick() {
@@ -81,10 +79,12 @@ function Transition(props) {
       // 
       socket.on("roomAvail", function(data){
         console.log("roomAvail", data)
-        console.log("roomAvail roomId", data.roomId)
+        console.log("roomAvail roomId", data.roomId);
+
         if(data.roomId && data.roomId != undefined){
           console.log("if block")
           setLobby(data.roomId);
+         // setFlag(true);
           socket.emit("joinGame", { room: data.roomId, name: data.userName });
         }else{
           console.log("else block")
@@ -121,7 +121,7 @@ function Transition(props) {
           // if(flag){
           //   socket.emit("getLobbyValues", {room: lobby})
           // }else{
-            socket.emit("LobbyValues", {room: lobby, difficulty:1, rounds:20})
+            //socket.emit("LobbyValues", {room: lobby, difficulty:1, rounds:20});
           // }
         }
     }, [lobby, countdown]);
@@ -161,13 +161,6 @@ function Transition(props) {
       </Row>
      
     </Container>
-
-    <Container>
-        <Row className="mt-3">
-          <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
-        </Row>
-      </Container>
-    
     
   </Container>
 

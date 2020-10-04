@@ -200,6 +200,7 @@ function Game(props) {
           setRandomImg(true);
           console.log('array', array);
           socket.emit("setItems", {room: lobby, items: array, round:rounds})
+          //socket.emit('getItems', {room:lobby, round:rounds});
         }
       }
 
@@ -364,7 +365,7 @@ function Game(props) {
       }
     });
 
-  }, [lobby, players])
+  }, [lobby])
 
 
   const copyToClipboard = () => {
@@ -399,11 +400,6 @@ function Game(props) {
           setTemp={setTemp}
           temp={temp}
         />
-        <Container>
-          <Row className="mt-3">
-            <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
-          </Row>
-        </Container>
       </div>
       <div className="selections block">
         <Item
@@ -468,6 +464,7 @@ function Game(props) {
           setsuccess={setSuccess}
           setlobby={setLobby}
           history={history}
+          setCountdown={setCountdown}
         />
 
         <br />
@@ -661,7 +658,7 @@ function Item(props) {
 
 
 function MyVerticallyCenteredModal(props) {
-  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history} = props;
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history, setCountdown} = props;
 
   useEffect(() => {
     if(lobby){
@@ -673,6 +670,8 @@ function MyVerticallyCenteredModal(props) {
         setgamewinner("");
         setwinner("");
         setsuccess(false);
+        setCountdown("3");
+
       });
     }
   }, [lobby])

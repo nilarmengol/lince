@@ -343,16 +343,21 @@ function Game(props) {
 
 
         // 
-        if(data.lobbyValues != undefined){
-          setTotalRounds(data.lobbyValues.rounds);
-          setRoundsLeft(data.lobbyValues.roundsLeft);
-          setDifficulty(data.lobbyValues.difficulty);
-          setRounds(data.lobbyValues.rounds - data.lobbyValues.roundsLeft + 1 )
-        }else{
-          setTotalRounds(10);
-          setRoundsLeft(10);
-          setDifficulty("2");
-        }
+        // if(localStorage.getItem('userInfo') != null){
+        //   user = JSON.parse(localStorage.getItem('userInfo'));
+        // }
+        // if(data.players.length > 0 && user.id == data.players[0].id){
+          if(data.lobbyValues != undefined){
+            setTotalRounds(data.lobbyValues.rounds);
+            setRoundsLeft(data.lobbyValues.roundsLeft);
+            setDifficulty(data.lobbyValues.difficulty);
+            setRounds(data.lobbyValues.rounds - data.lobbyValues.roundsLeft + 1 )
+          }else{
+            setTotalRounds(10);
+            setRoundsLeft(10);
+            setDifficulty("2");
+          }
+        //}  
 
         if(data.refreshItem != undefined){
           //setRandomItem(items[data.refreshItem]);
@@ -402,9 +407,11 @@ function Game(props) {
         setItems(data.items);
         //setRefreshItem(data.refreshItem);
         setRandomItem(data.items[data.refreshItem]);
+        //setRounds(data.round);
         
       }else{
         setDefaultImg(true);
+        //setRounds(data.round);
       }
     });
 
@@ -443,11 +450,6 @@ function Game(props) {
           setTemp={setTemp}
           temp={temp}
         />
-        <Container>
-          <Row className="mt-3">
-            <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
-          </Row>
-        </Container>
       </div>
       
       <div className="selections block">
@@ -514,6 +516,7 @@ function Game(props) {
           setsuccess={setSuccess}
           setlobby={setLobby}
           history={history}
+          setCountdown={setCountdown}
         />
 
         <br />
@@ -757,7 +760,7 @@ function Item(props) {
 
 
 function MyVerticallyCenteredModal(props) {
-  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history} = props;
+  const {gamewinner, lobby, players, setplayers, setroundsleft, totalrounds, setmodalshow, setrounds, setgamewinner, buttondisabled, setwinner, setsuccess, setlobby, history, setCountdown} = props;
 
   useEffect(() => {
     if(lobby){
@@ -769,6 +772,7 @@ function MyVerticallyCenteredModal(props) {
         setgamewinner("");
         setwinner("");
         setsuccess(false);
+        setCountdown("3");
       });
     }
   }, [lobby])

@@ -129,9 +129,27 @@ var ioEvents = function(IO) {
             // 
             socketDetails[socket.id] = roomId;
 
+            gameData[roomId] = {};
+            gameData[roomId].players = new Array();
+            gameData[roomId].typing = new Array();
+
             // 
             if(data.public){
                 publicRooms.push(roomId) ;
+                //
+                //if(gameData[roomId] != undefined && roomId){
+                    gameData[roomId].lobbyValues = new Array();
+                    //if(gameData[roomId].lobbyValues != undefined){
+                        gameData[roomId].lobbyValues = {
+                            difficulty: 1,
+                            rounds: 30,
+                            roundsLeft: 30
+                        };
+                    //}
+                    console.log("gameData[data.room].lobbyValues", gameData[roomId].lobbyValues)
+                    IO.in(roomId).emit('setLobbyValues', data);
+                //}
+                //
             }
 
             currentRoomId = roomId;
@@ -144,9 +162,9 @@ var ioEvents = function(IO) {
                 id: socket.id,
                 score: 0
             }
-            gameData[roomId] = {};
-            gameData[roomId].players = new Array();
-            gameData[roomId].typing = new Array();
+            // gameData[roomId] = {};
+            // gameData[roomId].players = new Array();
+            // gameData[roomId].typing = new Array();
             // gameData[roomId].lobbyValues = new Array();
             gameData[roomId].players.push({
                 name: data.name,
@@ -215,30 +233,30 @@ var ioEvents = function(IO) {
 
         socket.on("setItems", function(data){
             //gameData[data.room].items = [];
-            console.log("setItems", data);
+            //console.log("setItems", data);
 
             if(data.room && gameData[data.room].items == undefined || parseInt(data.round) % 10 == 0){
                 gameData[data.room].items = data.items;
             }
             if(data.room && gameData[data.room].items != undefined){
                 let items = gameData[data.room].items
-                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem });
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem , round:data.round});
             }
         });
 
         socket.on("getItems", function(data){
             //gameData[data.room].items = [];
-            console.log("getItems", data);
+            //console.log("getItems", data);
             if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0 || data.round == 1){
                 let items = gameData[data.room].items
-                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
             }
             else if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0){
                 let items = gameData[data.room].items
-                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem});
+                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
             }
             else{
-                IO.in(data.room).emit('onGetItems', {items: null});
+                IO.in(data.room).emit('onGetItems', {items: null , round:data.round});
             }
         });
 
@@ -278,6 +296,7 @@ var ioEvents = function(IO) {
             //     difficulty: data.difficulty,
             //     rounds: data.rounds
             // });
+            console.log("LobbyValues", data);
             if(gameData[data.room] != undefined && data.room){
                 gameData[data.room].lobbyValues = new Array();
                 if(gameData[data.room].lobbyValues != undefined){
@@ -325,10 +344,18 @@ var ioEvents = function(IO) {
 
                 IO.in(data.room).emit('onAnotherGame', gameData[data.room].players);
                 //socket.emit('onAnotherGame', gameData[data.room].players);
+
+                let lobbyValues = new Array();
+                if(lobbyValues != undefined){
+                    lobbyValues = {
+                        difficulty: gameData[data.room].lobbyValues.difficulty,
+                        rounds: gameData[data.room].lobbyValues.rounds,
+                        roundsLeft: gameData[data.room].lobbyValues.rounds
+                    };
+                }
+                console.log("another game lobby value", lobbyValues);
+                gameData[data.room].lobbyValues = lobbyValues;
             }
-
-            
-
         });
 
         socket.on('groupMsg', function (data) {
@@ -372,7 +399,7 @@ var ioEvents = function(IO) {
 
             }
             if(gameData[data.room].lobbyValues.roundsLeft){
-            gameData[data.room].lobbyValues.roundsLeft =  gameData[data.room].lobbyValues.roundsLeft - 1;
+                gameData[data.room].lobbyValues.roundsLeft =  gameData[data.room].lobbyValues.roundsLeft - 1;
             }
             // let inGamePlayers = [];
             // let allPlayers = gameData[data.room].players;

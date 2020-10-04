@@ -350,11 +350,7 @@ function Lobby(props) {
       </Row>
      
     </Container>
-    <Container>
-        <Row className="mt-3">
-          <Link to="/terms-and-conditions"><p>Terms & conditions</p></Link>
-        </Row>
-      </Container>
+
   </Container>
     );
   }
