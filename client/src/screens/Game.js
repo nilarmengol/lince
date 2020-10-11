@@ -750,9 +750,19 @@ function Players(props) {
 
   useEffect(() => {
       if(allMsg !=""){
-        scrollToBottom();
+        //scrollToBottom();
+        scrollToRef(myRef, divRef);
       }
     },[allMsg]);
+
+    const scrollToRef = (ref) => {
+      let added = ref.current.offsetTop + 120;
+      let chatlist = document.getElementById('chatList').scrollHeight + 100;   
+      console.log("chatlist height",chatlist)
+      document.getElementById('chatList').scrollTo(0, chatlist)   
+    }
+    const myRef = useRef(null)
+    const divRef = useRef(null)
 
 
     var timeout;
@@ -817,7 +827,7 @@ function Players(props) {
       <div className="chatWindow">
         {allMsg != "" ? (
         <ul className="chat" id="chatList">
-          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+          {/* <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span> */}
           {allMsg.map(data => (
             allMsg.length > 0 ? (
             <div>
@@ -840,9 +850,11 @@ function Players(props) {
             </div>) : <></>
           ))}
         </ul>) : <ul className="chat" id="chatList">
-          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+          {/* <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span> */}
           </ul> }
+          <div ref={myRef}/>
         <div className="chatInputWrapper">
+        <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
           <form onSubmit={handleSubmit}>
             <div className="message_input ">
               <input

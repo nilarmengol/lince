@@ -124,6 +124,7 @@ var ioEvents = function(IO) {
          * Create a new game room. 
          */
         socket.on('createGame', function (data) {
+            console.log("createGame", data);
             const roomId = data.name.split(' ')[0] + '-' + socket.id; //creating private lobby
             socket.join(roomId);
             // 
@@ -182,6 +183,7 @@ var ioEvents = function(IO) {
          * Connect the Player to the room he requested. Show error if room full.
          */
         socket.on('joinGame', function (data) {
+            console.log("joinGame", data);
             var room = IO.adapter.rooms[data.room];
             if (room && room.length > 0) {
                 socket.join(data.room);
@@ -247,16 +249,18 @@ var ioEvents = function(IO) {
         socket.on("getItems", function(data){
             //gameData[data.room].items = [];
             //console.log("getItems", data);
-            if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0 || data.round == 1){
-                let items = gameData[data.room].items
-                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
-            }
-            else if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0){
-                let items = gameData[data.room].items
-                IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
-            }
-            else{
-                IO.in(data.room).emit('onGetItems', {items: null , round:data.round});
+            if(gameData[data.room] != undefined){
+                if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0 || data.round == 1){
+                    let items = gameData[data.room].items
+                    IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
+                }
+                else if(data.room && gameData[data.room].items != undefined && parseInt(data.round) % 10 != 0){
+                    let items = gameData[data.room].items
+                    IO.in(data.room).emit('onGetItems', {items:items, refreshItem:gameData[data.room].refreshItem, round:data.round});
+                }
+                else{
+                    IO.in(data.room).emit('onGetItems', {items: null , round:data.round});
+                }
             }
         });
 

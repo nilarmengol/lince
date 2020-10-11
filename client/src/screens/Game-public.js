@@ -7,7 +7,6 @@ import { itemsIcons_all } from "../assets/Assets";
 import StartIcon from "../icons/start-icon.png";
 import io from "socket.io-client";
 
-
 //import 'font-awesome/css/font-awesome.min.css';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faLocationArrow, faUser } from '@fortawesome/free-solid-svg-icons'
@@ -293,7 +292,7 @@ function Game(props) {
     //   let filteredArray = players.filter(item => item.id !== data.id);
     //   //setPlayers(filteredArray);
     // });
-    
+
 
   }, [players]);
 
@@ -388,6 +387,11 @@ function Game(props) {
       // }
       let filteredArray = players.filter(item => item.id !== data.id);
       //setPlayers(filteredArray);
+    });
+
+
+    socket.on("err", function(data) {
+      history.push("/");
     });
 
 
@@ -499,6 +503,7 @@ function Game(props) {
 
         />
 
+
         <MyVerticallyCenteredModal
           show={modalShow}
           onHide={() => setModalShow(false)}
@@ -520,6 +525,7 @@ function Game(props) {
         />
 
         <br />
+
       </div>
     </div>
   );
@@ -838,11 +844,11 @@ function Players(props) {
     if(userMsg){
     socket.emit("groupMsg", { room: lobby,name: userName, message: userMsg});
     setUserMsg("");
+    //scrollToRef(myRef, divRef);
     }
   }
 
   const messagesEndRef = useRef()
-
   const scrollToBottom = () => {
     console.log("new message");
     messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
@@ -944,9 +950,18 @@ function Players(props) {
 
   useEffect(() => {
       if(allMsg !=""){
-        scrollToBottom();
+        //scrollToBottom();
+      scrollToRef(myRef, divRef);
       }
     },[allMsg]);
+    const scrollToRef = (ref) => {
+      let added = ref.current.offsetTop + 120;
+      let chatlist = document.getElementById('chatList').scrollHeight + 100;   
+      console.log("chatlist height",chatlist)
+      document.getElementById('chatList').scrollTo(0, chatlist)   
+    }
+    const myRef = useRef(null)
+    const divRef = useRef(null)
 
   return (
     <>
@@ -965,13 +980,13 @@ function Players(props) {
     {players.length > 0 && <Card fluid="true" className="mt-3">
     <Card.Header className="text-left"><h5>Chat</h5></Card.Header>
     <Card.Body>
-      <div className="chatWindow">
+
+      <div className="chatWindow" ref={divRef}>
         {allMsg != "" ? (
-        <ul className="chat" id="chatList">
-          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+        <ul className="chat" id="chatList" >
           {allMsg.map(data => (
             allMsg.length > 0 ? (
-            <div>
+            <div className="single_msg">
               {userName === data.name ? (
                 <li className="self">
                   <div className="msg">
@@ -988,17 +1003,21 @@ function Players(props) {
                 </li>
               )}
               <div ref={messagesEndRef} />
-            </div>) : <></>
+              
+            </div>
+            
+            ) : <></>
           ))}
         </ul>) : (
         <ul className="chat" id="chatList">
-          <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
           </ul>) 
           }
+        <div ref={myRef}/>
         <div className="chatInputWrapper">
+        <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span>
+
           <form onSubmit={handleSubmit}>
             <div className="message_input ">
-              {/* <span className="typing">{typingText} {typingText ? typingAnimation : ''}</span> */}
               <input
                 id="message-box"
                 className="textarea input "
@@ -1010,7 +1029,6 @@ function Players(props) {
                 onKeyUp={msgKeyUp}
               />
               <span className="message_submit" >
-                {/* <Icon.CursorFill color="royalblue" size={50} onClick={handleSubmit} /> */}
                 <FontAwesomeIcon icon={faLocationArrow} className="mt-8" color="#007bff" type="submit" onClick={handleSubmit}></FontAwesomeIcon>
                 </span>
             </div>
@@ -1101,5 +1119,24 @@ function Boardgame(props) {
     <> </>
   );
 }
+
+
+
+// const scrollToRef = (ref) => window.scrollTo(0, ref.current.offsetTop)   
+// // General scroll to element function
+
+// const ScrollDemo = () => {
+
+//    const myRef = useRef(null)
+//    const executeScroll = () => scrollToRef(myRef)
+
+//    return (
+//       <> 
+//          <div ref={myRef}>I wanna be seen</div> 
+//          <button onClick={executeScroll}> Click to scroll </button> 
+//       </>
+//    )
+// }
+
 
 export default Game;
