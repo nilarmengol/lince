@@ -59,7 +59,7 @@ function Game(props) {
   const [modalShow, setModalShow] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminButtonDisabled, setAdminButtonDisabled] = useState(true);
-  const [difficulty, setDifficulty] = useState("");
+  const [difficulty, setDifficulty] = useState("2");
   const [temp, setTemp] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [refreshItem, setRefreshItem] = useState("");
@@ -102,21 +102,31 @@ function Game(props) {
   useEffect(() => {
     if(winner){
     //if(winner.score > totalRounds/3){
-     if(winner.score > totalRounds/players.length){
+      // if(winner.score > totalRounds/players.length){
+      //   setGameWinner(winner);
+      // }else{
+      //   setRoundsLeft(roundsLeft - 1);
+      //   if(rounds<=totalRounds){setRounds(rounds + 1)};
+      // }  
+      if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
-      }else{
-        setRoundsLeft(roundsLeft - 1);
-        if(rounds<=totalRounds){setRounds(rounds + 1)};
-      }  
+      }
+      setRoundsLeft(roundsLeft - 1);
+      if(rounds<totalRounds){setRounds(rounds + 1)}; 
     }
   }, [winner]);
 
 
   useEffect(() => {
-    if(gameWinner != ""){
+    if(gameWinner != "" && roundsLeft == 0){
       setModalShow(true);
     }
-  }, [gameWinner]);
+  }, [gameWinner, winner, roundsLeft]);
+  // useEffect(() => {
+  //   if(gameWinner != ""){
+  //     setModalShow(true);
+  //   }
+  // }, [gameWinner]);
 
 
 
@@ -136,6 +146,7 @@ function Game(props) {
   useEffect(() => {
     if(defaultImg == true){
       let itemsIcons = "";
+      console.log("difficulty",difficulty );
       switch (difficulty) {
         case '1':
           itemsIcons = itemsIcons_all.slice(0, 200);
@@ -181,7 +192,7 @@ function Game(props) {
             let randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex -= 1;
 
-            console.log("currentIndex", currentIndex)
+            //console.log("currentIndex", currentIndex)
 
             // And swap it with the current element.
             let temporaryValue = array[currentIndex];
@@ -404,9 +415,9 @@ function Game(props) {
       socket.emit('getItems', {room:lobby, round:rounds});
     }
     socket.on("onGetItems", function(data) {
-      console.log("onGetItems", data);
+      //console.log("onGetItems", data);
       if(data.items && data.items.length > 0 || data.items != null){
-        console.log('items', data.items);
+        //console.log('items', data.items);
         setDefaultImg(false);
         setItems(data.items);
         //setRefreshItem(data.refreshItem);
@@ -616,7 +627,7 @@ function Item(props) {
   }, [items]);
 
   useEffect(() => {
-    if(success && gameWinner ==""){
+    if(success && roundsLeft != 0){
       setCountdown("3");
     }
   }, [success]);
@@ -811,7 +822,8 @@ function MyVerticallyCenteredModal(props) {
         </p>
       </Modal.Body>
       <Modal.Footer>
-      <Button disabled={buttondisabled} onClick={anotherGameBtn}>Try Again</Button>
+      {/* <Button disabled={buttondisabled} onClick={anotherGameBtn}>Try Again</Button> */}
+      <Button onClick={anotherGameBtn}>Try Again</Button>
       <Button variant="outline-danger" onClick={leaveGameBtn}>Leave Game</Button>
       </Modal.Footer>
     </Modal>
@@ -1108,7 +1120,7 @@ function Boardgame(props) {
           className={
             item === randomItem && success ? "squareGreen square" : "square"
           }
-          onClick={roundsLeft > 0 && !gameWinner ? () => score(item) : () => endMatch()}
+          onClick={roundsLeft > 0 ? () => score(item) : () => endMatch()}
           disabled
         >
           <img className={`square ${index}`} src={item} alt={item} />

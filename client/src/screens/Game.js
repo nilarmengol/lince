@@ -99,21 +99,30 @@ function Game(props) {
   useEffect(() => {
     if(winner){
     //if(winner.score > totalRounds/3){
-     if(winner.score > totalRounds/players.length){
+      // if(winner.score > totalRounds/players.length){
+      //   setGameWinner(winner);
+      // }else{
+      //   setRoundsLeft(roundsLeft - 1);
+      //   if(rounds<=totalRounds){setRounds(rounds + 1)};
+      // } 
+      if(winner.score > totalRounds/players.length){
         setGameWinner(winner);
-      }else{
-        setRoundsLeft(roundsLeft - 1);
-        if(rounds<=totalRounds){setRounds(rounds + 1)};
-      }  
+      }
+      setRoundsLeft(roundsLeft - 1);
+      if(rounds<totalRounds){setRounds(rounds + 1)}; 
     }
   }, [winner]);
 
-
   useEffect(() => {
-    if(gameWinner != ""){
+    if(gameWinner != "" && roundsLeft == 0){
       setModalShow(true);
     }
-  }, [gameWinner]);
+  }, [gameWinner, winner, roundsLeft]);
+  // useEffect(() => {
+  //   if(gameWinner != ""){
+  //     setModalShow(true);
+  //   }
+  // }, [gameWinner]);
 
   // useEffect(() => {
   //   let itemsIcons = "";
@@ -173,7 +182,8 @@ function Game(props) {
         console.log("user", user);
         console.log("player", players);
         //if(players.length > 0 && user.id == players[0].id){
-        if(lobby && user.id == players[0].id){
+        //if(lobby && user.id == players[0].id){
+        if(lobby && players){
           const itemId = Math.floor(Math.random() * itemsIcons.length);
           setRandomItem(itemsIcons[itemId]);
           socket.emit("newItem", { room: lobby, itemId: itemId });
@@ -361,6 +371,7 @@ function Game(props) {
         setRandomItem(data.items[data.refreshItem]);
         
       }else{
+        console.log("set default image false")
         setDefaultImg(true);
       }
     });
@@ -543,7 +554,9 @@ function Item(props) {
   }, [items]);
 
   useEffect(() => {
-    if(success && gameWinner ==""){
+    //if(success && gameWinner ==""){
+    if(success && roundsLeft != 0){
+    
       setCountdown("3");
     }
   }, [success]);
@@ -934,6 +947,7 @@ function Boardgame(props) {
         });
       }  
     } else {
+      console.log("roundsLeft",roundsLeft)
       console.log("wrong", countdown);
     }
   };
@@ -947,9 +961,17 @@ function Boardgame(props) {
           className={
             item === randomItem && success ? "squareGreen square" : "square"
           }
-          onClick={roundsLeft > 0 && !gameWinner ? () => score(item) : () => endMatch()}
+          onClick={roundsLeft > 0 ? () => score(item) : () => endMatch()}
           disabled
         >
+          {/* <div
+          key={index}
+          className={
+            item === randomItem && success ? "squareGreen square" : "square"
+          }
+          onClick={roundsLeft > 0 && !gameWinner ? () => score(item) : () => endMatch()}
+          disabled
+        > */}
           <img className="square " src={item} alt={item} />
         </div>
       ))}

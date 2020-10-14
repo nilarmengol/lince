@@ -142,7 +142,7 @@ var ioEvents = function(IO) {
                     gameData[roomId].lobbyValues = new Array();
                     //if(gameData[roomId].lobbyValues != undefined){
                         gameData[roomId].lobbyValues = {
-                            difficulty: 1,
+                            difficulty: "2",
                             rounds: 30,
                             roundsLeft: 30
                         };
