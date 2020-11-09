@@ -111,6 +111,7 @@ function App() {
         const lobbyValue = urlParams.get("lobby");
         socket.emit("getRoomDet", { room: lobbyValue});
         socket.on("roomDet", function(data){
+          setPlayers(data.players);
           setRoomLength(data.length);
         });
         //history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
@@ -120,15 +121,28 @@ function App() {
 
   useEffect(() => {
     if(roomLength != ""){
-      if(roomLength < 8 && userName){
+      console.log("app players", players);
+      var duplicateName = 0;
+      for (let i = 0; i < players.length; i++) {
+        console.log("players.name", players[i].name);
+        console.log("userName", userName);
+          if (players[i].name.toLowerCase() == userName.toLowerCase()) {
+              duplicateName++;
+          }
+      }
+      if(roomLength < 8 && userName && duplicateName == 0){
         let url = window.location.href;
         let queryString = window.location.search;
         history.push(nextPage+queryString, { userName: userName, id: 1, action: 'join', url:url });
       }else{
-      setLobbyFullErr("No space in lobby!!")
+        if(duplicateName > 0){
+          setLobbyFullErr("Username already exists! Please try with some other name")
+        }else{
+          setLobbyFullErr("No space in lobby!!")
+        }
       }
     }
-  }, [roomLength]);
+  }, [roomLength, players]);
 
   return (
     

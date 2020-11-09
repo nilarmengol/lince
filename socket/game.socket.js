@@ -114,8 +114,25 @@ var ioEvents = function(IO) {
             })
             console.log("availableRooms", availableRooms);
             var randomRoom = availableRooms[Math.floor(Math.random() * availableRooms.length)];
-
-            socket.emit("roomAvail", {userName: data.name, roomId: randomRoom});
+            if(gameData[randomRoom]){
+                var duplicateName = 0;
+                for (let i = 0; i < gameData[randomRoom].players.length; i++) {
+                    console.log("players.name", gameData[randomRoom].players[i].name);
+                    console.log("userName", data.name);
+                    if (gameData[randomRoom].players[i].name.toLowerCase() == data.name.toLowerCase()) {
+                        duplicateName++;
+                    }
+                }
+                console.log("duplicateName",duplicateName)
+                if(duplicateName == 0){
+                    socket.emit("roomAvail", {userName: data.name, roomId: randomRoom});
+                }else{
+                    socket.emit("roomAvail", {userName: data.name});
+                }
+            }
+            else{
+                socket.emit("roomAvail", {userName: data.name});
+            }   
             //availableRooms.push(roomId);
             //IO.in(data.room).emit('onRefresh');
         });
@@ -270,7 +287,8 @@ var ioEvents = function(IO) {
         socket.on('getRoomDet', function (data) {
             if( IO.adapter.rooms[data.room] != undefined){
                 var length = IO.adapter.rooms[data.room].length;
-                socket.emit('roomDet', {length:length });
+                
+                socket.emit('roomDet', {length:length, players: gameData[data.room].players });
             }
         });
 
